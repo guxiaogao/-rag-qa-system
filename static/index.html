@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>北师大智能问答系统</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Microsoft YaHei", sans-serif; background: #f5f5f5; }
+  .chat-container { max-width: 800px; margin: 0 auto; padding: 20px; }
+  .header { background: #003d7a; color: white; padding: 16px; text-align: center; border-radius: 8px 8px 0 0; }
+  .header h1 { font-size: 20px; }
+  .messages { height: 60vh; overflow-y: auto; padding: 20px; background: white; border: 1px solid #e0e0e0; }
+  .msg { margin-bottom: 16px; display: flex; gap: 10px; }
+  .msg.user { flex-direction: row-reverse; }
+  .msg .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .msg.assistant .avatar { background: #e3f2fd; color: #003d7a; }
+  .msg.user .avatar { background: #003d7a; color: white; }
+  .msg .text { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; word-break: break-word; }
+  .msg.user .text { background: #003d7a; color: white; }
+  .msg.assistant .text { background: #f0f0f0; color: #333; }
+  .msg .meta { font-size: 12px; color: #999; margin-top: 4px; }
+  .input-area { background: white; padding: 16px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; display: flex; gap: 10px; }
+  .input-area input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; outline: none; }
+  .input-area input:focus { border-color: #003d7a; }
+  .input-area button { padding: 10px 24px; background: #003d7a; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; }
+  .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .loading { color: #999; font-style: italic; padding: 10px; }
+  .sources { font-size: 12px; color: #888; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
+  .sources a { color: #003d7a; cursor: default; }
+  .options { display: flex; gap: 16px; padding: 8px 16px; background: white; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; font-size: 13px; }
+  .options label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: #666; }
+</style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="header"><h1>🏫 北师大智能问答助手</h1></div>
+  <div class="messages" id="messages"></div>
+  <div class="options">
+    <label><input type="checkbox" id="opt_stream" checked> 流式输出</label>
+    <label><input type="checkbox" id="opt_rerank"> 重排序</label>
+    <label><input type="checkbox" id="opt_rewrite"> 查询优化</label>
+    <label><input type="checkbox" id="opt_selfrag"> Self-RAG</label>
+  </div>
+  <div class="input-area">
+    <input id="query" placeholder="输入问题，比如：违纪怎么处理？" onkeydown="if(event.key==='Enter') send()"/>
+    <button id="sendBtn" onclick="send()">发送</button>
+  </div>
+</div>
+<script>
+const API = '/api/chat';
+
+function addMsg(role, text, sources) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `<div class="avatar">${role==='user'?'我':'AI'}</div>
+    <div><div class="text">${text}</div>
+    ${sources ? `<div class="sources">📎 参考来源：${sources.map((s,i) => `[${i+1}] ${s.filename}`).join('，')}</div>` : ''}
+    </div>`;
+  document.getElementById('messages').appendChild(div);
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+}
+
+async function send() {
+  const input = document.getElementById('query');
+  const btn = document.getElementById('sendBtn');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = ''; btn.disabled = true;
+  addMsg('user', q);
+
+  const stream = document.getElementById('opt_stream').checked;
+  const body = {
+    query: q, top_k: 5,
+    use_reranker: document.getElementById('opt_rerank').checked,
+    use_rewrite: document.getElementById('opt_rewrite').checked,
+    use_self_rag: document.getElementById('opt_selfrag').checked,
+    stream: stream,
+  };
+
+  if (stream) {
+    // SSE 流式
+    const resp = await fetch(API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let answer = '', sources = null, msgDiv = null, textDiv = null;
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      const text = decoder.decode(value);
+      for (const line of text.split('\n')) {
+        if (!line.startsWith('data: ')) continue;
+        const data = JSON.parse(line.slice(6));
+        if (data.type === 'token') {
+          answer += data.content;
+          if (!msgDiv) { msgDiv = document.createElement('div'); msgDiv.className = 'msg assistant'; textDiv = document.createElement('div'); msgDiv.innerHTML = '<div class="avatar">AI</div>'; msgDiv.appendChild(textDiv); document.getElementById('messages').appendChild(msgDiv); }
+          textDiv.innerHTML = `<div class="text">${answer.replace(/\n/g,'<br>')}</div>`;
+          document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        } else if (data.type === 'sources') {
+          sources = data.sources;
+          if (textDiv) textDiv.innerHTML += `<div class="sources">📎 参考来源：${sources.map((s,i) => `[${i+1}] ${s.filename}`).join('，')}</div>`;
+        } else if (data.type === 'error') {
+          addMsg('assistant', `❌ ${data.message}`);
+        }
+      }
+    }
+  } else {
+    // 非流式
+    const resp = await fetch(API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const json = await resp.json();
+    if (resp.ok) {
+      const sources_info = json.sources?.length ? json.sources : null;
+      addMsg('assistant', json.answer.replace(/\n/g,'<br>'), sources_info);
+    } else {
+      addMsg('assistant', `❌ ${json.message || '请求失败'}`);
+    }
+  }
+  btn.disabled = false;
+}
+
+addMsg('assistant', '你好！我是北师大校园问答助手，可以回答关于选课、违纪、生活服务、图书馆等问题。有什么需要帮助的吗？');
+</script>
+</body>
+</html>

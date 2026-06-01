@@ -1,0 +1,42 @@
+[
+    {
+        "question": "什么是 A/B 测试？",
+        "golden_answer": "A/B 测试是一种比较两个或多个版本的实验方法，通过将用户随机分配到不同组别，比较各组在核心指标上的表现差异，从而判断哪个版本效果更好。",
+        "relevant_topics": ["A/B测试", "实验设计"]
+    },
+    {
+        "question": "A/B 测试中如何确定样本量？",
+        "golden_answer": "样本量取决于期望的效应量、显著性水平（通常 α=0.05）和统计功效（通常 80%）。效应量越小，需要的样本量越大。",
+        "relevant_topics": ["样本量", "统计功效"]
+    },
+    {
+        "question": "什么是 Embedding？",
+        "golden_answer": "Embedding 是将文本、图像等非结构化数据映射到低维向量空间的技术，使得语义相近的内容在向量空间中距离更近。",
+        "relevant_topics": ["Embedding", "向量化"]
+    },
+    {
+        "question": "RAG 系统的三个核心步骤是什么？",
+        "golden_answer": "RAG 系统的三个核心步骤是：1. 检索（Retrieval）：从知识库中找到相关文档；2. 增强（Augmented）：将检索到的文档和问题组合成提示词；3. 生成（Generation）：交给大语言模型生成答案。",
+        "relevant_topics": ["RAG", "检索增强生成"]
+    },
+    {
+        "question": "什么是 P 值？",
+        "golden_answer": "P 值是在原假设为真的前提下，观察到当前结果或更极端结果的概率。P 值小于显著性水平（通常 0.05）时，拒绝原假设。",
+        "relevant_topics": ["P值", "假设检验", "统计学"]
+    },
+    {
+        "question": "为什么 RAG 需要评估？",
+        "golden_answer": "RAG 系统涉及检索和生成两个环节，每个环节都可能出错。需要评估来量化不同组件（分块策略、检索模型、排序方式等）对最终效果的影响，为系统优化提供数据支撑。",
+        "relevant_topics": ["RAG评估", "系统优化"]
+    },
+    {
+        "question": "什么是 Cohen's Kappa？",
+        "golden_answer": "Cohen's Kappa 是衡量两个评估者之间一致性的统计指标，它排除了随机一致的部分，比简单一致率更可靠。取值在 -1 到 1 之间，1 表示完全一致，0 表示随机水平。",
+        "relevant_topics": ["Cohen's Kappa", "一致性检验"]
+    },
+    {
+        "question": "Chunk 大小对 RAG 有什么影响？",
+        "golden_answer": "Chunk 大小影响检索质量和生成效果。chunk 太小可能缺失上下文信息，chunk 太大会引入噪音降低精度。通常需要通过实验找到最优值。",
+        "relevant_topics": ["Chunk", "分块策略"]
+    }
+]

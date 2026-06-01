@@ -1,0 +1,185 @@
+"""
+========== 评估指标模块 ==========
+实现 RAG 系统的 4 个核心评估指标：
+1. Faithfulness（忠实度）：答案是否基于检索到的上下文，没有编造
+2. Answer Relevancy（答案相关性）：答案是否针对问题
+3. Context Precision（检索精度）：检索到的文档中有多少是相关的
+4. Context Recall（检索召回）：需要的文档是否都被检索到了
+
+所有指标使用 LLM-as-Judge 范式，用通义千问做裁判。
+"""
+
+import json
+import re
+from typing import List, Dict, Any, Optional
+
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+
+from app.config import settings
+
+
+def get_judge_llm(temperature: float = 0.0) -> ChatOpenAI:
+    """
+    创建裁判 LLM 实例。
+    用 qwen-turbo（便宜）做评估，temperature=0 保证结果稳定。
+    """
+    return ChatOpenAI(
+        model=settings.judge_model,
+        api_key=settings.dashscope_api_key,
+        base_url=settings.dashscope_base_url,
+        temperature=temperature,
+    )
+
+
+def _extract_score(text: str) -> float:
+    """
+    从 LLM 返回的文本中提取分数，统一归一化到 0-1。
+    支持多种格式："分数：8"，"Score: 8/10"，"0.8"，裸数字 "10" 等。
+    """
+    text = text.strip()
+
+    # 尝试匹配 "X/10" 或 "X/5" 格式
+    match = re.search(r"(\d+(?:\.\d+)?)\s*/\s*(\d+)", text)
+    if match:
+        return float(match.group(1)) / float(match.group(2))
+
+    # 尝试匹配 "分数：X" 或 "Score: X" 格式（带文字前缀的，假设满分 10）
+    match = re.search(r"(?:分数|得分|score|rating)[：:\s]*(\d+(?:\.\d+)?)", text, re.IGNORECASE)
+    if match:
+        score = float(match.group(1))
+        return score / 10.0 if score > 1 else score
+
+    # 尝试匹配 0-1 的小数（如 "0.85"）
+    match = re.search(r"\b(0\.\d+)\b", text)
+    if match:
+        return float(match.group(1))
+
+    # 尝试匹配裸数字（模型可能直接返回数字，如 "10" / "8" / "7.5"）
+    match = re.search(r"^\s*(\d+(?:\.\d+)?)\s*$", text)
+    if match:
+        score = float(match.group(1))
+        # 大于 1 的视为 1-10 分制，归一化到 0-1
+        return score / 10.0 if score > 1 else score
+
+    # 默认 0.5（无法解析时给中等分）
+    return 0.5
+
+
+# ========== 指标 1：Faithfulness（忠实度）==========
+
+FAITHFULNESS_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """你是一个评估助手。你需要判断以下"回答"是否忠实于给定的"上下文"。
+忠实意味着：回答中的所有信息都能在上下文中找到依据，没有编造。
+不忠实意味着：回答中包含上下文中没有的信息，或者与上下文矛盾。
+请从 1 到 10 打分：
+1-3：严重编造，大部分信息不在上下文中
+4-6：部分编造，有些信息可以找到依据，有些不能
+7-9：基本忠实，只有少量不精确之处
+10：完全忠实，所有信息都有上下文依据
+
+只返回分数，不要多余的文字。"""),
+    ("human", "上下文：\n{context}\n\n回答：\n{answer}\n\n分数："),
+])
+
+
+def faithfulness(answer: str, context: str) -> float:
+    """评估回答是否忠实于检索到的上下文"""
+    llm = get_judge_llm()
+    prompt = FAITHFULNESS_PROMPT.format(context=context, answer=answer)
+    response = llm.invoke(prompt)
+    return _extract_score(response.content)
+
+
+# ========== 指标 2：Answer Relevancy（答案相关性）==========
+
+RELEVANCY_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """你是一个评估助手。你需要判断以下"回答"是否与"问题"相关。
+
+相关意味着：回答直接针对问题，提供了问题所需要的信息。
+不相关意味着：回答跑题了，或者答非所问。
+请从 1 到 10 打分：
+1-3：完全不相关
+4-6：部分相关，但没切中要点
+7-9：比较相关
+10：非常相关，完美回答了问题
+只返回分数，不要多余的文字。"""),
+    ("human", "问题：{question}\n\n回答：{answer}\n\n分数："),
+])
+
+
+def answer_relevancy(question: str, answer: str) -> float:
+    """评估回答是否与问题相关"""
+    llm = get_judge_llm()
+    prompt = RELEVANCY_PROMPT.format(question=question, answer=answer)
+    response = llm.invoke(prompt)
+    return _extract_score(response.content)
+
+
+# ========== 指标 3：Context Precision（检索精度）==========
+
+PRECISION_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """你是一个评估助手。你需要判断以下"检索结果"中的每个片段是否与"问题"相关。
+
+请对每个片段逐一判断，返回每个片段是否相关（是/否），以及相关的比例。
+
+格式要求：
+片段1：是/否
+片段2：是/否
+...
+相关比例：X/Y"""),
+    ("human", "问题：{question}\n\n检索到的文档片段：\n{context}\n\n请依次判断每个片段是否相关："),
+])
+
+
+def context_precision(question: str, context_chunks: List[str]) -> float:
+    """
+    评估检索精度。
+    即检索到的 top-k 个片段中有多少比例是真正相关的。
+    """
+    llm = get_judge_llm()
+    context_text = "\n---\n".join(
+        [f"片段{i+1}：{chunk}" for i, chunk in enumerate(context_chunks)]
+    )
+    prompt = PRECISION_PROMPT.format(question=question, context=context_text)
+    response = llm.invoke(prompt)
+    content = response.content
+
+    # 计算相关比例
+    relevant_count = 0
+    total_count = 0
+    for line in content.split("\n"):
+        if "片段" in line and ("是" in line or "否" in line):
+            total_count += 1
+            if "是" in line and "否" not in line:
+                relevant_count += 1
+
+    if total_count == 0:
+        return 0.5
+    return relevant_count / total_count
+
+
+# ========== 指标 4：Context Recall（检索召回）==========
+
+RECALL_PROMPT = ChatPromptTemplate.from_messages([
+    ("system", """你是一个评估助手。你需要判断"检索到的文档片段"是否覆盖了回答"标准答案"所需的关键信息。
+
+关键问题：基于标准答案中的信息，检索结果是否包含了足够的内容来得出这个答案？
+
+请从 1 到 10 打分：
+1-3：严重遗漏，大部分必要信息未检索到
+4-6：部分遗漏，一些关键信息缺失
+7-9：基本覆盖，只有少量信息缺失
+10：完全覆盖，所有必要信息都已检索到
+
+只返回分数，不要多余的文字。"""),
+    ("human", "标准答案：{golden_answer}\n\n检索到的文档片段：\n{context}\n\n分数："),
+])
+
+
+def context_recall(golden_answer: str, context: str) -> float:
+    """评估检索到的内容是否覆盖了标准答案所需的信息"""
+    llm = get_judge_llm()
+    prompt = RECALL_PROMPT.format(golden_answer=golden_answer, context=context)
+    response = llm.invoke(prompt)
+    return _extract_score(response.content)

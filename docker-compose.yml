@@ -1,0 +1,36 @@
+# ============================================================
+# RAG 智能问答系统 Docker Compose
+# 启动: docker-compose up -d
+# 首次启动后需初始化向量库:
+#   docker-compose exec rag python scripts/init_db.py
+# ============================================================
+
+version: "3.8"
+
+services:
+  rag:
+    build: .
+    container_name: rag-qa-system
+    ports:
+      - "8000:8000"
+    # 从 .env 文件加载环境变量
+    # 注意: .env 文件必须存在且包含 DASHSCOPE_API_KEY
+    env_file:
+      - .env
+    volumes:
+      # 向量数据库持久化（重启不丢）
+      - ./data/chroma_db:/app/data/chroma_db
+      # 源文档（方便随时添加新 PDF/txt 后重建索引）
+      - ./data/source_docs:/app/data/source_docs:ro
+      # 前端静态文件（如需热更新）
+      - ./static:/app/static:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    extra_hosts:
+      # 如果遇到 DNS 解析问题，取消注释下面的行
+      # - "host.docker.internal:host-gateway"

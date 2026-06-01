@@ -1,0 +1,32 @@
+# RAG 项目完整依赖
+# 安装：pip install -r requirements.txt
+
+# === Web 框架 ===
+fastapi>=0.110.0
+python-multipart>=0.0.9
+uvicorn[standard]>=0.30.0
+
+# === Pydantic ===
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# === LangChain 生态 ===
+langchain>=0.2.0
+langchain-core>=0.2.0
+langchain-openai>=0.1.0
+langchain-chroma>=0.1.0
+
+# === OpenAI SDK（DashScope 兼容接口）===
+openai>=1.0.0
+
+# === 向量数据库 ===
+chromadb>=0.5.0
+
+# === 文档处理 ===
+pypdf>=4.0.0
+
+# === Web 搜索 ===
+duckduckgo-search>=7.0.0
+
+# === 评估与实验 ===
+pandas>=2.0.0
