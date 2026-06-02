@@ -12,6 +12,9 @@ venv/
 data/chroma_db/
 data/temp/
 
+# 源文档 PDF（来自学校官网，有版权，不公开）
+data/source_docs/*.pdf
+
 # IDE
 .vscode/
 .idea/

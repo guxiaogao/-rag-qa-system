@@ -329,8 +329,8 @@ curl -X POST http://localhost:8000/api/chat \
 |------|------|----------|-----------|
 | **向量相似度检索** | HNSW 索引 + cosine 距离 | 默认启用 | — |
 | **MMR 检索** | 最大边际相关性，平衡相关性和多样性 | `use_mmr` | — |
-| **Query Rewrite** | LLM 将口语化查询重写为关键词 | `use_rewrite` | `REWRITE_ENABLED` |
-| **Rerank API 重排序** | DashScope gte-rerank 精排候选 | `use_reranker` | `RERANK_ENABLED` |
+| **Query Rewrite** | LLM 将口语化查询重写为关键词 | `use_rewrite` | `REWRITE_ENABLED` (默认开启) |
+| **Rerank API 重排序** | DashScope gte-rerank 精排候选 | `use_reranker` | `RERANK_ENABLED` (默认开启) |
 
 ### 生成增强
 
@@ -388,12 +388,12 @@ CHUNK_SIZE=500                    # 文档分块大小 (字符数)
 CHUNK_OVERLAP=100                 # 分块之间重叠量
 
 # ========== 重排序 (可选, 走 API, 极低成本) ==========
-RERANK_ENABLED=false
+RERANK_ENABLED=true              # 建议开启，极低成本精排
 RERANK_MODEL=gte-rerank
 RERANK_FETCH_K=20                 # 重排序前候选池大小
 
 # ========== Query Rewrite (可选) ==========
-REWRITE_ENABLED=false
+REWRITE_ENABLED=true              # 建议开启，优化检索关键词
 REWRITE_MODEL=qwen-turbo
 
 # ========== Self-RAG (可选) ==========
@@ -432,7 +432,7 @@ WEB_SEARCH_NUM_RESULTS=5
 | LLM & Embedding | **DashScope 通义千问** | OpenAI 兼容接口, 中文效果优秀 |
 | 向量数据库 | **ChromaDB** | HNSW 索引, cosine 距离, 持久化存储 |
 | LLM 编排 | **LangChain** | Document / Prompt 抽象, Chroma 集成 |
-| 重排序 | **BGE-Reranker-v2-m3** | CrossEncoder 交叉编码器, 子进程隔离 |
+| 重排序 | **DashScope gte-rerank API** | 云端重排序, 按 token 计费, 无需本地 GPU |
 | PDF 解析 | **pypdf** | 纯 Python PDF 文本提取 |
 | Web 搜索 | **duckduckgo-search** | 免 API Key, 零配置 fallback |
 | 评估 | **LLM-as-Judge** | 4 指标自评估, Pandas 对比分析 |

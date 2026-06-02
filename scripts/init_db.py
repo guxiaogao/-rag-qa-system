@@ -5,11 +5,15 @@
 2. 自动扫描 data/source_docs/ 目录下所有 .txt/.md/.pdf 文件
 3. 逐文件加载、分块并写入 ChromaDB
 
-运行方式：python scripts/init_db.py
+运行方式：
+  python scripts/init_db.py          # 增量模式：只索引新文件
+  python scripts/init_db.py --full   # 全量模式：清空旧数据后重建
 
 说明：
-- 重新运行会清空旧数据并重建索引，旧数据不会保留
-- 将你的 PDF/论文/文档放入 data/source_docs/，运行此脚本即可自动索引
+- 增量模式（默认）：比较文件名，跳过已入库的文件，只处理新文件。
+  如需更新已索引文件的内容，请用 --full 重建。
+- 全量模式（--full）：清空向量库后重新索引所有文件。
+- 将你的 PDF/论文/文档放入 data/source_docs/，运行此脚本即可自动索引。
 """
 
 import os
@@ -19,7 +23,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app.document_loader import load_and_split
-from app.database import get_vector_store, reset_collection
+from app.database import get_vector_store, reset_collection, get_indexed_filenames
 from app.config import settings, PROJECT_ROOT
 
 
@@ -67,8 +71,12 @@ SAMPLE_DOCUMENTS = {
 
 def main():
     """初始化向量数据库：写入示例文档 + 自动扫描并索引 source_docs 目录"""
+    # 解析命令行参数
+    full_rebuild = "--full" in sys.argv
+
+    mode_label = "全量重建" if full_rebuild else "增量索引（跳过已入库文件）"
     print("=" * 60)
-    print("初始化向量数据库")
+    print(f"初始化向量数据库 — {mode_label}")
     print("=" * 60)
 
     # ========== 第 0 步：检查 API Key ==========
@@ -100,7 +108,7 @@ def main():
     # os.listdir() 列出目录下所有文件
     # 过滤：只保留扩展名在支持列表中的文件，跳过子目录
     all_files = os.listdir(data_dir)
-    files_to_process = []
+    all_supported = []
     for f in all_files:
         full_path = os.path.join(data_dir, f)
         # 跳过子目录，只处理文件
@@ -109,31 +117,54 @@ def main():
         # 检查扩展名（转小写后比较，兼容 .PDF / .TXT 等大写写法）
         ext = os.path.splitext(f)[1].lower()
         if ext in SUPPORTED_EXTENSIONS:
-            files_to_process.append(f)
+            all_supported.append(f)
         else:
             print(f"   [SKIP] 跳过（不支持格式）：{f}")
 
-    if not files_to_process:
+    if not all_supported:
         print("\n[错误] 未找到任何可处理的文档文件（.txt/.md/.pdf）")
         return
 
-    # 按文件名排序，保证每次构建的顺序一致
-    files_to_process.sort()
-    print(f"   发现 {len(files_to_process)} 个文件待索引：")
+    all_supported.sort()
+
+    # ========== 第 3 步：确定哪些文件需要索引 ==========
+    if full_rebuild:
+        # 全量模式：清空旧数据后重新索引全部文件
+        print(f"\n[第 3 步] 全量模式：清空向量数据库中的旧数据...")
+        try:
+            reset_collection()
+            print(f"   已删除旧集合：{settings.chroma_collection_name}")
+        except Exception as e:
+            print(f"   清理旧数据时出错（可忽略）：{e}")
+        files_to_process = all_supported
+    else:
+        # 增量模式：查询已入库的文件名，找出新文件
+        print(f"\n[第 3 步] 增量模式：比对已索引文件...")
+        try:
+            indexed = get_indexed_filenames()
+            print(f"   向量库中已有 {len(indexed)} 个文件")
+        except Exception as e:
+            print(f"   查询向量库失败 ({e})，将当作首次运行处理全部文件")
+            indexed = set()
+
+        files_to_process = []
+        for f in all_supported:
+            if f in indexed:
+                print(f"   [SKIP] 已入库：{f}")
+            else:
+                files_to_process.append(f)
+
+    if not files_to_process:
+        print(f"\n{'=' * 60}")
+        print(f"没有新文件需要索引，向量库已是最新。")
+        print(f"   已索引文件数：{len(all_supported)}")
+        print(f"   如需强制重建，请运行：python scripts/init_db.py --full")
+        return
+
+    print(f"   发现 {len(files_to_process)} 个新文件待索引：")
     for f in files_to_process:
-        # os.path.getsize() 获取文件字节数，用于显示文件大小
         size_kb = os.path.getsize(os.path.join(data_dir, f)) / 1024
         print(f"     - {f}（{size_kb:.1f} KB）")
-
-    # ========== 第 3 步：清空旧数据，避免重复 ==========
-    # 重新运行 init_db.py 意味着重建索引，先删掉旧的集合
-    # 使用项目封装的 reset_collection() 而非直接操作 chromadb
-    print(f"\n[第 3 步] 清空向量数据库中的旧数据...")
-    try:
-        reset_collection()
-        print(f"   已删除旧集合：{settings.chroma_collection_name}")
-    except Exception as e:
-        print(f"   清理旧数据时出错（可忽略）：{e}")
 
     # ========== 第 4 步：逐文件加载、分块、写入向量库 ==========
     print(f"\n[第 4 步] 加载文档并写入向量数据库...")
@@ -161,16 +192,17 @@ def main():
     # ========== 第 5 步：输出汇总 ==========
     print(f"\n{'=' * 60}")
     print(f"初始化完成！")
-    print(f"   处理文件数：{len(files_to_process)}")
-    print(f"   总片段数（chunks）：{total_chunks}")
+    print(f"   本次新增文件数：{len(files_to_process)}")
+    print(f"   本次新增片段数（chunks）：{total_chunks}")
     print(f"   向量数据库：{settings.chroma_db_path}")
     print(f"   文档目录：{data_dir}")
     print(f"\n后续使用：")
-    print(f"   API 服务：uvicorn app.main:app --reload")
-    print(f"   Notebook：notebooks/RAG_完整演示.ipynb")
-    print(f"   Swagger 文档：http://localhost:8000/docs")
+    print(f"   启动服务：uvicorn app.main:app --reload")
+    print(f"   API 文档：http://localhost:8000/docs")
+    print(f"   聊天界面：http://localhost:8000")
     print(f"\n[提示] 将新的 PDF/txt/md 文档放入 source_docs/ 后，")
-    print(f"   重新运行 python scripts/init_db.py 即可索引新文件")
+    print(f"   运行 python scripts/init_db.py 增量追加新文件")
+    print(f"   运行 python scripts/init_db.py --full 重建全部索引")
 
 
 if __name__ == "__main__":

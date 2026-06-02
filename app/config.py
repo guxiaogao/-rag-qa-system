@@ -41,7 +41,7 @@ class Settings(BaseSettings):
 
     # ========== 重排序参数（DashScope Rerank API）==========
     # 是否启用重排序（服务端总开关，关闭时即使 API 传 use_reranker=true 也不生效）
-    rerank_enabled: bool = False
+    rerank_enabled: bool = True
 
     # 重排序模型名称（DashScope 模型 ID）
     # gte-rerank 是阿里通义实验室的中英双语重排序模型，效果与 bge-reranker-v2-m3 同级别
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # ========== Query Rewrite 参数 ==========
     # 是否启用查询重写（服务端总开关，关闭时即使 API 传 use_rewrite=true 也不生效）
-    rewrite_enabled: bool = False
+    rewrite_enabled: bool = True
 
     # 用于查询重写的模型（用便宜的就行，qwen-turbo 足够做关键词提取）
     rewrite_model: str = "qwen-turbo"

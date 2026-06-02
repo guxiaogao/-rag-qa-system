@@ -134,3 +134,32 @@ def get_collection():
         raise VectorStoreException(
             detail=f"获取 ChromaDB Collection 失败: {type(e).__name__}: {str(e)}",
         )
+
+
+def get_indexed_filenames() -> set[str]:
+    """
+    查询向量库中已索引的文件名集合。
+    用于增量索引：跳过已入库的文件，只处理新文件。
+
+    返回：
+        set[str]: 已索引的文件名集合（空集合表示首次运行或库为空）
+
+    注意：
+        仅比较文件名，不校验文件内容是否变化。
+        如需更新已索引文件的内容，请用 --full 重建。
+    """
+    try:
+        collection = get_vector_store()._collection
+        all_data = collection.get()
+        filenames = set()
+        for meta in all_data["metadatas"]:
+            name = meta.get("filename", "")
+            if name:
+                filenames.add(name)
+        return filenames
+    except (ConfigurationException, VectorStoreException):
+        raise
+    except Exception as e:
+        raise VectorStoreException(
+            detail=f"查询已索引文件列表失败: {type(e).__name__}: {str(e)}",
+        )
