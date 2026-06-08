@@ -21,6 +21,13 @@ class Source(BaseModel):
 
 
 # ---------- 问答接口 ----------
+
+class ChatMessage(BaseModel):
+    """单条对话消息"""
+    role: str   # "user" | "assistant"
+    content: str
+
+
 class ChatRequest(BaseModel):
     """问答请求"""
     query: str                          # 用户问题
@@ -32,6 +39,7 @@ class ChatRequest(BaseModel):
     use_web_search: bool = False         # 是否允许 Web 搜索 fallback（KB 不足时补全）
     temperature: float = settings.llm_temperature  # LLM 生成温度（0-1）
     stream: bool = False                # true=SSE流式输出, false=JSON一次性返回
+    conversation_history: list[ChatMessage] = []  # 多轮对话历史（按时间顺序，最近 3 轮即可）
 
 
 class SelfRagMeta(BaseModel):
@@ -54,6 +62,7 @@ class SearchRequest(BaseModel):
     """检索请求"""
     query: str                          # 搜索关键词
     top_k: int = settings.top_k         # 返回的片段数（默认从全局配置读取）
+    use_mmr: bool = False               # 是否使用 MMR 增加多样性
     use_reranker: bool = False          # 是否使用 Rerank API 重排序
     use_rewrite: bool = False           # 是否使用 LLM 查询重写
 

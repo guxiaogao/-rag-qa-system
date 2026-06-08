@@ -169,7 +169,15 @@ def retrieve(
         # ---- 重排序阶段 ----
         if should_rerank:
             from app.reranker import rerank
-            docs = rerank(query=query, docs=docs, top_k=top_k)
+            try:
+                docs = rerank(query=query, docs=docs, top_k=top_k)
+            except RuntimeError as e:
+                logger.warning(
+                    "Rerank 执行失败 (%s)，降级使用原始排序",
+                    str(e)[:120],
+                )
+                # 重排序失败时，回退到原始相似度排序的前 top_k 个
+                docs = sorted(docs, key=lambda d: d.metadata.get("score", 0.0), reverse=True)[:top_k]
 
         return docs
 

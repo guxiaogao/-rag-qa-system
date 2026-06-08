@@ -29,7 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 注册全局异常处理器（必须在注册路由之后，否则 handler 中对路由的引用可能失效）
+# 注册全局异常处理器（异常处理器不依赖路由注册顺序，先注册也没问题）
 register_exception_handlers(app)
 
 # 注册 API 路由

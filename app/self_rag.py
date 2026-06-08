@@ -18,7 +18,6 @@
 """
 
 import logging
-import re
 from typing import List, Optional
 
 from langchain_openai import ChatOpenAI
@@ -62,27 +61,7 @@ REFINEMENT_QUERY_PROMPT = ChatPromptTemplate.from_messages([
 ])
 
 
-def _extract_score(text: str) -> float:
-    """
-    从 LLM 返回的文本中提取分数，归一化到 0-1。
-    与 evaluation/metrics.py 的 _extract_score 保持一致。
-    """
-    text = text.strip()
-    match = re.search(r"(\d+(?:\.\d+)?)\s*/\s*(\d+)", text)
-    if match:
-        return float(match.group(1)) / float(match.group(2))
-    match = re.search(r"(?:分数|得分|score|rating)[：:\s]*(\d+(?:\.\d+)?)", text, re.IGNORECASE)
-    if match:
-        score = float(match.group(1))
-        return score / 10.0 if score > 1 else score
-    match = re.search(r"\b(0\.\d+)\b", text)
-    if match:
-        return float(match.group(1))
-    match = re.search(r"^\s*(\d+(?:\.\d+)?)\s*$", text)
-    if match:
-        score = float(match.group(1))
-        return score / 10.0 if score > 1 else score
-    return 0.5
+from app.utils import extract_score as _extract_score  # 共享工具函数，与 evaluation/metrics.py 同源
 
 
 def check_faithfulness(answer: str, context: str) -> float:
@@ -167,6 +146,7 @@ def self_rag_loop(
     max_rounds: int = 2,
     faithfulness_threshold: float = 0.7,
     refine_top_k: int = 3,
+    conversation_history: list[dict] = None,
 ) -> dict:
     """
     Self-RAG 主循环。
@@ -188,6 +168,7 @@ def self_rag_loop(
         max_rounds:             最大精炼轮次
         faithfulness_threshold: 忠实度阈值，低于此分数触发精炼
         refine_top_k:           精炼检索的 top_k
+        conversation_history:   多轮对话历史（仅在首轮生成时使用）
 
     返回：
         {
@@ -199,15 +180,20 @@ def self_rag_loop(
     """
     from app.retriever import retrieve
 
+    if max_rounds < 1:
+        raise ValueError("max_rounds 必须 >= 1")
+
     current_docs = docs
+    answer = ""  # 防御性初始化：防止循环未执行时的 UnboundLocalError
     scores = []
 
     for round_num in range(max_rounds):
-        # 生成答案
+        # 生成答案（仅在首轮使用对话历史）
         answer = generate_answer(
             query=query,
             docs=current_docs,
             temperature=temperature,
+            conversation_history=conversation_history if round_num == 0 else None,
         )
 
         # 检查忠实度

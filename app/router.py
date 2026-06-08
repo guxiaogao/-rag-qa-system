@@ -131,6 +131,9 @@ async def chat(request: ChatRequest):
     """
     # ========== 非流式模式 ==========
     if not request.stream:
+        # 将 Pydantic 模型转为 dict，供 generator 使用
+        history_dicts = [m.model_dump() for m in request.conversation_history]
+
         docs = retrieve(
             query=request.query,
             top_k=request.top_k,
@@ -157,6 +160,7 @@ async def chat(request: ChatRequest):
                 max_rounds=settings.self_rag_max_rounds,
                 faithfulness_threshold=settings.self_rag_faithfulness_threshold,
                 refine_top_k=settings.self_rag_refine_top_k,
+                conversation_history=history_dicts,
             )
             answer = result["answer"]
             docs = result["docs"]
@@ -169,6 +173,7 @@ async def chat(request: ChatRequest):
                 query=request.query,
                 docs=docs,
                 temperature=request.temperature,
+                conversation_history=history_dicts,
             )
 
         sources = [
@@ -191,6 +196,9 @@ async def chat(request: ChatRequest):
         )
 
     # ========== 流式模式 ==========
+    # 将 Pydantic 模型转为 dict，供 generator 使用
+    history_dicts = [m.model_dump() for m in request.conversation_history]
+
     # 检索在 SSE 开始前执行（同步函数在线程池中跑，避免阻塞事件循环）
     loop = asyncio.get_event_loop()
     docs = await loop.run_in_executor(
@@ -217,15 +225,17 @@ async def chat(request: ChatRequest):
     self_rag_rounds = 0
     self_rag_scores: list[float] = []
     if request.use_self_rag and settings.self_rag_enabled:
+        # 注意：lambda 默认参数绑定 history_dicts，防止闭包延迟绑定
         result = await loop.run_in_executor(
             None,
-            lambda: self_rag_loop(
+            lambda _h=history_dicts: self_rag_loop(
                 query=request.query,
                 docs=docs,
                 temperature=request.temperature,
                 max_rounds=settings.self_rag_max_rounds,
                 faithfulness_threshold=settings.self_rag_faithfulness_threshold,
                 refine_top_k=settings.self_rag_refine_top_k,
+                conversation_history=_h,
             ),
         )
         docs = result["docs"]
@@ -254,6 +264,7 @@ async def chat(request: ChatRequest):
         _web_used=web_used,
         _query=request.query,
         _temperature=request.temperature,
+        _history=history_dicts,
     ):
         """SSE 事件生成器：token → sources → self_rag 元数据 → web_search_used → done
 
@@ -266,6 +277,7 @@ async def chat(request: ChatRequest):
                 query=_query,
                 docs=_docs,
                 temperature=_temperature,
+                conversation_history=_history,
             ):
                 yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
 
@@ -312,6 +324,7 @@ async def search(request: SearchRequest):
     docs = retrieve(
         query=request.query,
         top_k=request.top_k,
+        use_mmr=request.use_mmr,
         use_reranker=request.use_reranker,
         use_rewrite=request.use_rewrite,
     )

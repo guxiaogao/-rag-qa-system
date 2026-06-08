@@ -25,15 +25,40 @@ SYSTEM_PROMPT = """你是一个基于知识库的智能问答助手。
 3. 不要编造不存在的信息
 4. 回答要简洁、准确
 5. 必要时引用信息来源（文件名）
-6.如果用户问题不清晰可酌情引导用户提供更多细节
+6. 如果用户问题不清晰可酌情引导用户提供更多细节
+7. 当[对话历史]中有上文时，注意理解问题的指代和上下文（如"那个""它""还有吗"等）
 """
 
 # Chat prompt 模板
 chat_prompt = ChatPromptTemplate.from_messages([
     ("system", SYSTEM_PROMPT),
+    ("system", "{history}"),
     ("system", "{context}"),
     ("human", "{question}"),
 ])
+
+
+def format_conversation_history(history: list[dict]) -> str:
+    """
+    将多轮对话历史格式化为 LLM 可读的文本。
+    仅取最近 3 轮（6 条消息），避免 token 浪费。
+
+    参数：
+        history: [{"role":"user","content":"..."}, {"role":"assistant","content":"..."}, ...]
+
+    返回：
+        格式化的历史文本，无历史时返回空字符串。
+    """
+    if not history:
+        return ""
+
+    # 最多保留最近 3 轮对话 = 6 条消息
+    recent = history[-6:]
+    lines = ["[对话历史]"]
+    for m in recent:
+        label = "用户" if m["role"] == "user" else "助手"
+        lines.append(f"{label}：{m['content']}")
+    return "\n".join(lines)
 
 
 def get_llm(model: str = None, temperature: float = None) -> ChatOpenAI:
@@ -93,6 +118,7 @@ def generate_answer(
     docs: List[LCDocument],
     model: str = None,
     temperature: float = None,
+    conversation_history: list[dict] = None,
 ) -> str:
     """
     给定问题 + 检索到的文档，让 LLM 生成回答（同步，阻塞式）。
@@ -102,6 +128,7 @@ def generate_answer(
         docs: 检索到的文档片段列表
         model: 可选的模型覆盖
         temperature: LLM 生成温度，默认用全局配置
+        conversation_history: 多轮对话历史，[{"role":"user","content":"..."}, ...]
 
     返回：
         LLM 生成的回答文本
@@ -112,7 +139,9 @@ def generate_answer(
     try:
         llm = get_llm(model=model, temperature=temperature)
         context = format_context(docs)
+        history = format_conversation_history(conversation_history or [])
         messages = chat_prompt.format_messages(
+            history=history,
             context=f"以下是从知识库中检索到的 {len(docs)} 个相关片段：{context}",
             question=query,
         )
@@ -129,6 +158,7 @@ async def generate_answer_stream(
     docs: List[LCDocument],
     model: str = None,
     temperature: float = None,
+    conversation_history: list[dict] = None,
 ) -> AsyncGenerator[str, None]:
     """
     给定问题 + 检索到的文档，让 LLM 流式生成回答。
@@ -141,6 +171,7 @@ async def generate_answer_stream(
         docs: 检索到的文档片段列表
         model: 可选的模型覆盖
         temperature: LLM 生成温度，默认用全局配置
+        conversation_history: 多轮对话历史，[{"role":"user","content":"..."}, ...]
 
     Yields:
         str: 单个 token 文本（非空）
@@ -151,7 +182,9 @@ async def generate_answer_stream(
     try:
         llm = get_llm(model=model, temperature=temperature)
         context = format_context(docs)
+        history = format_conversation_history(conversation_history or [])
         messages = chat_prompt.format_messages(
+            history=history,
             context=f"以下是从知识库中检索到的 {len(docs)} 个相关片段：{context}",
             question=query,
         )

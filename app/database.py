@@ -33,7 +33,7 @@ class DashScopeEmbeddings(Embeddings):
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         """
-        将多个文本批量向量化，自动分批以适配 API 的 batch size 限制（最多 25）。
+        将多个文本批量向量化，自动分批以适配 API 的 batch size 限制（text-embedding-v2/v3 最高 10）。
         如果 API 调用失败（Key 无效、超时、限流等），异常会被上层捕获并转为 VectorStoreException。
         """
         all_embeddings = []

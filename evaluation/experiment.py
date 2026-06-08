@@ -125,62 +125,76 @@ class Experiment:
         在指定配置下运行完整的评估流程。
 
         流程：
-        1. 应用配置参数
-        2. 对每个测试问题：检索 → 生成 → 计算 4 个指标
-        3. 返回汇总结果
+        1. 保存当前配置
+        2. 应用实验配置
+        3. 对每个测试问题：检索 → 生成 → 计算 4 个指标
+        4. 恢复原始配置
+        5. 返回汇总结果
         """
-        config.apply()
-        print(f"▶ 运行实验：{config.name} ({config.description})")
-        print(f"   参数：chunk_size={config.chunk_size}, "
-              f"overlap={config.chunk_overlap}, top_k={config.top_k}, "
-              f"mmr={config.use_mmr}, reranker={config.use_reranker}, "
-              f"rewrite={config.use_rewrite}")
+        # 保存原始配置值，实验结束后恢复
+        original = {
+            "chunk_size": settings.chunk_size,
+            "chunk_overlap": settings.chunk_overlap,
+            "top_k": settings.top_k,
+        }
+        try:
+            config.apply()
+            print(f"▶ 运行实验：{config.name} ({config.description})")
+            print(f"   参数：chunk_size={config.chunk_size}, "
+                  f"overlap={config.chunk_overlap}, top_k={config.top_k}, "
+                  f"mmr={config.use_mmr}, reranker={config.use_reranker}, "
+                  f"rewrite={config.use_rewrite}")
 
-        results = []
-        for i, item in enumerate(self.test_data):
-            question = item["question"]
-            golden = item["golden_answer"]
+            results = []
+            for i, item in enumerate(self.test_data):
+                question = item["question"]
+                golden = item["golden_answer"]
 
-            start = time.time()
+                start = time.time()
 
-            # Step 1: 检索
-            docs = retrieve(
-                query=question,
-                top_k=config.top_k,
-                use_mmr=config.use_mmr,
-                use_reranker=config.use_reranker,
-                use_rewrite=config.use_rewrite,
-            )
-            context_text = format_context(docs)
-            retrieved_chunks = [d.page_content for d in docs]
+                # Step 1: 检索
+                docs = retrieve(
+                    query=question,
+                    top_k=config.top_k,
+                    use_mmr=config.use_mmr,
+                    use_reranker=config.use_reranker,
+                    use_rewrite=config.use_rewrite,
+                )
+                context_text = format_context(docs)
+                retrieved_chunks = [d.page_content for d in docs]
 
-            # Step 2: 生成
-            answer = generate_answer(query=question, docs=docs)
+                # Step 2: 生成
+                answer = generate_answer(query=question, docs=docs)
 
-            # Step 3: 评估
-            latency = time.time() - start
+                # Step 3: 评估
+                latency = time.time() - start
 
-            fs = faithfulness(answer, context_text)
-            ar = answer_relevancy(question, answer)
-            cp = context_precision(question, retrieved_chunks)
-            cr = context_recall(golden, context_text)
+                fs = faithfulness(answer, context_text)
+                ar = answer_relevancy(question, answer)
+                cp = context_precision(question, retrieved_chunks)
+                cr = context_recall(golden, context_text)
 
-            results.append(EvalResult(
-                question=question,
-                golden_answer=golden,
-                answer=answer,
-                retrieved_chunks=retrieved_chunks,
-                faithfulness_score=fs,
-                relevancy_score=ar,
-                precision_score=cp,
-                recall_score=cr,
-                latency=latency,
-            ))
+                results.append(EvalResult(
+                    question=question,
+                    golden_answer=golden,
+                    answer=answer,
+                    retrieved_chunks=retrieved_chunks,
+                    faithfulness_score=fs,
+                    relevancy_score=ar,
+                    precision_score=cp,
+                    recall_score=cr,
+                    latency=latency,
+                ))
 
-            print(f"   [{i+1}/{len(self.test_data)}] {question[:30]}... "
-                  f"F={fs:.2f} R={ar:.2f} P={cp:.2f} Re={cr:.2f}")
+                print(f"   [{i+1}/{len(self.test_data)}] {question[:30]}... "
+                      f"F={fs:.2f} R={ar:.2f} P={cp:.2f} Re={cr:.2f}")
 
-        return ExperimentResult(config=config, results=results)
+            return ExperimentResult(config=config, results=results)
+        finally:
+            # 恢复原始配置，避免污染后续实验
+            settings.chunk_size = original["chunk_size"]
+            settings.chunk_overlap = original["chunk_overlap"]
+            settings.top_k = original["top_k"]
 
     def compare(self, configs: List[ExperimentConfig]) -> pd.DataFrame:
         """

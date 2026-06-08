@@ -28,7 +28,7 @@ from app.config import settings, PROJECT_ROOT
 
 
 # ========== 内置示例文档 ==========
-# 为保证零配置即可跑通，内置 4 篇示例文档内容。
+# 为保证零配置即可跑通，内置 1 篇示例文档（简介.txt）。
 # 首次运行时会写入 data/source_docs/，后续可自行增删文件。
 # 放入该目录的任何 .txt / .md / .pdf 都会被自动索引。
 

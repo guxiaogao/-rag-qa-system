@@ -98,6 +98,11 @@ def rerank(
 
     results = response_data.get("output", {}).get("results", [])
 
+    # 如果 API 返回空结果（异常情况），优雅降级：
+    # 回退到原始的相似度排序，不丢弃已有上下文
+    if not results:
+        raise RuntimeError("Rerank API 返回空结果，降级使用原始排序")
+
     # 将重排序分数写入各文档 metadata
     for item in results:
         idx = item.get("index", -1)
