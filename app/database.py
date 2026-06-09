@@ -7,6 +7,7 @@ langchain-openai 内部会 tokenize 后发送 token ID 数组，
 而 DashScope API 只接受原始文本字符串。所以自定义 Embedding 类。
 """
 
+import threading
 from typing import List
 from langchain_chroma import Chroma
 from langchain_core.embeddings import Embeddings
@@ -64,13 +65,14 @@ def get_embedding_model() -> DashScopeEmbeddings:
 
 # 模块级缓存：避免每次调用都创建新的 Chroma/OpenAI 实例
 _vector_store: Chroma | None = None
+_vector_store_lock = threading.Lock()  # 线程安全：防止并发初始化导致 sqlite3 文件锁冲突
 
 
 def get_vector_store() -> Chroma:
     """
     获取（或创建）持久化的 ChromaDB 向量存储实例。
     如果数据库已存在则直接加载，否则自动创建新库。
-    使用模块级缓存避免重复创建连接，在高并发场景下显著减少开销。
+    使用模块级缓存 + 双重检查锁避免重复创建连接，在高并发场景下保证线程安全。
 
     可能的异常：
     - ConfigurationException：API Key 未配置（由 get_embedding_model 抛出）
@@ -80,22 +82,27 @@ def get_vector_store() -> Chroma:
     if _vector_store is not None:
         return _vector_store
 
-    try:
-        embedding = get_embedding_model()
-        _vector_store = Chroma(
-            collection_name=settings.chroma_collection_name,
-            embedding_function=embedding,
-            persist_directory=settings.chroma_db_path,
-        )
-        return _vector_store
-    except (ConfigurationException, VectorStoreException):
-        # 这两类已经是自定义异常，直接向上传播
-        raise
-    except Exception as e:
-        # 将 ChromaDB 或其他底层库的原始异常包装为 VectorStoreException
-        raise VectorStoreException(
-            detail=f"ChromaDB 初始化失败: {type(e).__name__}: {str(e)}",
-        )
+    with _vector_store_lock:
+        # 双重检查：在锁内再次确认未被其他线程抢先初始化
+        if _vector_store is not None:
+            return _vector_store
+
+        try:
+            embedding = get_embedding_model()
+            _vector_store = Chroma(
+                collection_name=settings.chroma_collection_name,
+                embedding_function=embedding,
+                persist_directory=settings.chroma_db_path,
+            )
+            return _vector_store
+        except (ConfigurationException, VectorStoreException):
+            # 这两类已经是自定义异常，直接向上传播
+            raise
+        except Exception as e:
+            # 将 ChromaDB 或其他底层库的原始异常包装为 VectorStoreException
+            raise VectorStoreException(
+                detail=f"ChromaDB 初始化失败: {type(e).__name__}: {str(e)}",
+            )
 
 
 def reset_collection() -> None:

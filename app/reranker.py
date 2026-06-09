@@ -98,10 +98,10 @@ def rerank(
 
     results = response_data.get("output", {}).get("results", [])
 
-    # 如果 API 返回空结果（异常情况），优雅降级：
-    # 回退到原始的相似度排序，不丢弃已有上下文
+    # 如果 API 返回空结果（异常情况），静默降级：
+    # 直接返回原始文档列表（按相似度排序后的 top_k），保留已有上下文
     if not results:
-        raise RuntimeError("Rerank API 返回空结果，降级使用原始排序")
+        return sorted(docs, key=lambda d: d.metadata.get("score", 0.0), reverse=True)[:top_k]
 
     # 将重排序分数写入各文档 metadata
     for item in results:

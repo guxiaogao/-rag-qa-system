@@ -46,6 +46,7 @@ class SelfRagMeta(BaseModel):
     """Self-RAG 元数据（精炼过程信息）"""
     rounds: int = 0                              # 实际精炼轮次
     faithfulness_scores: List[float] = []         # 每轮的忠实度分数
+    degraded: bool = False                       # 是否发生了静默降级（如裁判 LLM 不可用）
 
 
 class ChatResponse(BaseModel):

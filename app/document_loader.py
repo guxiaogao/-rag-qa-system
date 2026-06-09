@@ -99,22 +99,12 @@ class RecursiveTextSplitter:
                 if doc_text.strip():
                     docs.append(doc_text)
 
-                # 保留 overlap
+                # 保留 overlap：取当前 chunk 文本的尾部子串作为下一 chunk 的前缀，
+                # 保证语义连续（直接截取实际文本的末尾 N 个字符，而非通过分隔符拼接估算）
                 if self.chunk_overlap > 0:
-                    # 从尾部拿 overlap 大小的内容
-                    overlap_text = ""
-                    for part in reversed(current_doc):
-                        candidate = separator + part + overlap_text if overlap_text else part
-                        if len(candidate) <= self.chunk_overlap:
-                            overlap_text = candidate
-                        else:
-                            break
-                    if overlap_text:
-                        current_doc = [overlap_text]
-                        current_len = len(overlap_text)
-                    else:
-                        current_doc = []
-                        current_len = 0
+                    overlap_text = doc_text[-self.chunk_overlap:]
+                    current_doc = [overlap_text]
+                    current_len = len(overlap_text)
                 else:
                     current_doc = []
                     current_len = 0

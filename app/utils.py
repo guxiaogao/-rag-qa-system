@@ -4,7 +4,40 @@ RAG 项目中各处复用的辅助函数。
 """
 
 import re
+from functools import lru_cache
 
+from langchain_openai import ChatOpenAI
+from app.config import settings
+
+
+# ========== LLM 实例缓存 ==========
+
+@lru_cache(maxsize=8)
+def get_cached_llm(model: str, temperature: float, *, _tag: str = "") -> ChatOpenAI:
+    """
+    创建（并缓存）ChatOpenAI 实例。
+    使用 lru_cache 避免高并发下重复创建 HTTP 客户端。
+
+    参数：
+        model:       模型名称
+        temperature: 生成温度（0=确定性）
+        _tag:        可选标签，用于区分同模型同温度的不同用途（如 "judge" vs "rewrite"）
+                     Python 的 lru_cache 以参数为 key，不传 _tag 时 (model, temp) 即可区分
+
+    注意：
+        - 同一 (model, temperature) 组合只会创建一次实例
+        - 实例不含状态，线程安全
+        - maxsize=8 覆盖：chat×3 温度 + judge×1 + rewrite×1 + refiner×1
+    """
+    return ChatOpenAI(
+        model=model,
+        api_key=settings.dashscope_api_key,
+        base_url=settings.dashscope_base_url,
+        temperature=temperature,
+    )
+
+
+# ========== 分数提取 ==========
 
 def extract_score(text: str) -> float:
     """

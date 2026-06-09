@@ -12,23 +12,19 @@
 import json
 from typing import List, Dict, Any, Optional
 
-from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.config import settings
+from app.utils import get_cached_llm
 
 
-def get_judge_llm(temperature: float = 0.0) -> ChatOpenAI:
+def get_judge_llm(temperature: float = 0.0):
     """
-    创建裁判 LLM 实例。
+    获取（缓存）裁判 LLM 实例。
     用 qwen-turbo（便宜）做评估，temperature=0 保证结果稳定。
+    同一 (model, temperature) 组合全局复用，避免重复创建 HTTP 客户端。
     """
-    return ChatOpenAI(
-        model=settings.judge_model,
-        api_key=settings.dashscope_api_key,
-        base_url=settings.dashscope_base_url,
-        temperature=temperature,
-    )
+    return get_cached_llm(model=settings.judge_model, temperature=temperature)
 
 
 from app.utils import extract_score as _extract_score  # 共享工具函数，与 app/self_rag.py 同源

@@ -167,6 +167,7 @@ async def chat(request: ChatRequest):
             self_rag_meta = SelfRagMeta(
                 rounds=result["rounds"],
                 faithfulness_scores=result["faithfulness_scores"],
+                degraded=result.get("degraded", False),
             )
         else:
             answer = generate_answer(
@@ -224,6 +225,7 @@ async def chat(request: ChatRequest):
     # 复用 self_rag_loop() 而非手写内联逻辑，与非流式路径保持一致
     self_rag_rounds = 0
     self_rag_scores: list[float] = []
+    self_rag_degraded = False
     if request.use_self_rag and settings.self_rag_enabled:
         # 注意：lambda 默认参数绑定 history_dicts，防止闭包延迟绑定
         result = await loop.run_in_executor(
@@ -241,6 +243,7 @@ async def chat(request: ChatRequest):
         docs = result["docs"]
         self_rag_rounds = result["rounds"]
         self_rag_scores = result["faithfulness_scores"]
+        self_rag_degraded = result.get("degraded", False)
 
     # 预先格式化来源数据
     final_docs = docs
@@ -261,6 +264,7 @@ async def chat(request: ChatRequest):
         _sources=sources_data,
         _rounds=self_rag_rounds,
         _scores=self_rag_scores,
+        _degraded=self_rag_degraded,
         _web_used=web_used,
         _query=request.query,
         _temperature=request.temperature,
@@ -286,7 +290,7 @@ async def chat(request: ChatRequest):
 
             # 推送 Self-RAG 元数据（如果有）
             if _rounds > 0:
-                yield f"data: {json.dumps({'type': 'self_rag', 'rounds': _rounds, 'faithfulness_scores': _scores}, ensure_ascii=False)}\n\n"
+                yield f"data: {json.dumps({'type': 'self_rag', 'rounds': _rounds, 'faithfulness_scores': _scores, 'degraded': _degraded}, ensure_ascii=False)}\n\n"
 
             # 推送 Web 搜索标记
             yield f"data: {json.dumps({'type': 'meta', 'web_search_used': _web_used}, ensure_ascii=False)}\n\n"

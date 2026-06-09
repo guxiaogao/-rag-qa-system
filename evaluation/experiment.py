@@ -27,21 +27,19 @@ from app.config import settings, PROJECT_ROOT
 class ExperimentConfig:
     """
     实验配置：描述一组 RAG 参数组合。
+
+    注意：chunk_size / chunk_overlap 是索引时参数，变更后需重建向量库才能生效。
+    对比实验应先用不同 chunk_size 分别运行 init_db.py 建立独立数据库，
+    或仅对比运行时可切换的参数（top_k / use_mmr / use_reranker / use_rewrite）。
     """
     name: str                          # 配置名称（如 "baseline", "chunk300"）
-    chunk_size: int = 500              # 分块大小
-    chunk_overlap: int = 100           # 分块重叠
-    top_k: int = settings.top_k        # 检索返回数（默认从全局配置读取）
+    chunk_size: int = 500              # 分块大小（仅供记录，不影响运行时检索）
+    chunk_overlap: int = 100           # 分块重叠（仅供记录，不影响运行时检索）
+    top_k: int = settings.top_k        # 检索返回数（运行时生效，传给 retrieve）
     use_mmr: bool = False              # 是否使用 MMR
     use_reranker: bool = False         # 是否使用 Rerank API 重排序
     use_rewrite: bool = False          # 是否使用 Query Rewrite 重写查询
     description: str = ""              # 配置描述
-
-    def apply(self):
-        """将本配置应用到全局设置中"""
-        settings.chunk_size = self.chunk_size
-        settings.chunk_overlap = self.chunk_overlap
-        settings.top_k = self.top_k
 
 
 @dataclass
@@ -125,28 +123,21 @@ class Experiment:
         在指定配置下运行完整的评估流程。
 
         流程：
-        1. 保存当前配置
-        2. 应用实验配置
-        3. 对每个测试问题：检索 → 生成 → 计算 4 个指标
-        4. 恢复原始配置
-        5. 返回汇总结果
-        """
-        # 保存原始配置值，实验结束后恢复
-        original = {
-            "chunk_size": settings.chunk_size,
-            "chunk_overlap": settings.chunk_overlap,
-            "top_k": settings.top_k,
-        }
-        try:
-            config.apply()
-            print(f"▶ 运行实验：{config.name} ({config.description})")
-            print(f"   参数：chunk_size={config.chunk_size}, "
-                  f"overlap={config.chunk_overlap}, top_k={config.top_k}, "
-                  f"mmr={config.use_mmr}, reranker={config.use_reranker}, "
-                  f"rewrite={config.use_rewrite}")
+        1. 对每个测试问题：检索 → 生成 → 计算 4 个指标
+        2. 返回汇总结果
 
-            results = []
-            for i, item in enumerate(self.test_data):
+        注意：chunk_size / chunk_overlap 为索引时参数，本方法不修改全局 settings，
+        避免与服务并发运行时互相干扰。检索阶段仅使用 config.top_k / use_mmr 等
+        运行时参数，这些参数直接传入 retrieve()，不走全局配置。
+        """
+        print(f"▶ 运行实验：{config.name} ({config.description})")
+        print(f"   参数：chunk_size={config.chunk_size}(仅供记录), "
+              f"top_k={config.top_k}, "
+              f"mmr={config.use_mmr}, reranker={config.use_reranker}, "
+              f"rewrite={config.use_rewrite}")
+
+        results = []
+        for i, item in enumerate(self.test_data):
                 question = item["question"]
                 golden = item["golden_answer"]
 
@@ -189,12 +180,7 @@ class Experiment:
                 print(f"   [{i+1}/{len(self.test_data)}] {question[:30]}... "
                       f"F={fs:.2f} R={ar:.2f} P={cp:.2f} Re={cr:.2f}")
 
-            return ExperimentResult(config=config, results=results)
-        finally:
-            # 恢复原始配置，避免污染后续实验
-            settings.chunk_size = original["chunk_size"]
-            settings.chunk_overlap = original["chunk_overlap"]
-            settings.top_k = original["top_k"]
+        return ExperimentResult(config=config, results=results)
 
     def compare(self, configs: List[ExperimentConfig]) -> pd.DataFrame:
         """

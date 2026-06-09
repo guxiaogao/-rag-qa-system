@@ -12,6 +12,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from app.config import settings
 from app.exceptions import GenerationException
+from app.utils import get_cached_llm
 
 
 # ========== Prompt 模板 ==========
@@ -63,18 +64,19 @@ def format_conversation_history(history: list[dict]) -> str:
 
 def get_llm(model: str = None, temperature: float = None) -> ChatOpenAI:
     """
-    创建 DashScope 通义千问 LLM 实例。
+    获取（缓存）DashScope 通义千问 LLM 实例。
 
     参数：
         model: 模型名称，默认用配置中的 chat_model
         temperature: 生成随机性（0-1），默认用配置中的 llm_temperature
+
+    返回：
+        缓存的 ChatOpenAI 实例。同一 (model, temperature) 组合全局复用。
     """
     if temperature is None:
         temperature = settings.llm_temperature
-    return ChatOpenAI(
+    return get_cached_llm(
         model=model or settings.chat_model,
-        api_key=settings.dashscope_api_key,
-        base_url=settings.dashscope_base_url,
         temperature=temperature,
     )
 

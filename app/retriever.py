@@ -15,13 +15,13 @@
 import logging
 from typing import List, Optional
 
-from langchain_openai import ChatOpenAI
 from langchain_core.documents import Document as LCDocument
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.database import get_vector_store
 from app.config import settings
 from app.exceptions import RetrievalException, VectorStoreException
+from app.utils import get_cached_llm
 
 logger = logging.getLogger("rag.retriever")
 
@@ -54,11 +54,9 @@ def rewrite_query(query: str) -> str:
         return query
 
     try:
-        llm = ChatOpenAI(
+        llm = get_cached_llm(
             model=settings.rewrite_model,
-            api_key=settings.dashscope_api_key,
-            base_url=settings.dashscope_base_url,
-            temperature=0.0,  # 确定性输出
+            temperature=0.0,
         )
         prompt = QUERY_REWRITE_PROMPT.format(query=query)
         response = llm.invoke(prompt)
@@ -128,32 +126,24 @@ def retrieve(
             query = rewrite_query(query)
 
         if use_mmr:
-            # MMR 检索：平衡相关性和多样性
-            # 注意：max_marginal_relevance_search 返回的 Document
-            # 不携带 relevance score。需要先做一次相似度检索获取分数，
-            # 再将分数映射到 MMR 结果上。
+            # MMR 检索：平衡相关性和多样性。
+            # 直接调用 max_marginal_relevance_search（内部已完成相似度搜索 + MMR 去冗余），
+            # 避免原来先 similarity_search_with_relevance_scores 后 MMR 的双重查询：
+            # 两次调用各自触发 embed_query()，对同一 query 重复调用 Embedding API。
             if fetch_k is None:
                 fetch_k = first_stage_k * 5
 
-            # 先获取候选及分数
-            scored = vector_store.similarity_search_with_relevance_scores(
-                query=query, k=fetch_k,
-            )
-            content_to_score: dict[str, float] = {
-                doc.page_content: round(score, 4)
-                for doc, score in scored
-            }
-
-            # 再用 MMR 重排（不需要再查询——同一 query 下候选集一致）
             mmr_docs = vector_store.max_marginal_relevance_search(
                 query=query, k=first_stage_k, fetch_k=fetch_k,
             )
 
-            # 将相似度分数映射回 MMR 结果
-            docs = []
-            for doc in mmr_docs:
-                doc.metadata["score"] = content_to_score.get(doc.page_content, 0.0)
-                docs.append(doc)
+            # MMR 返回的文档不含独立 similarity score（MMR 平衡了相关性与多样性，
+            # 单一维度的嵌入相似度无法完整反映 MMR 排序后的文档价值）。
+            # 后续 rerank 阶段（如启用）会提供更精确的重排序分数；
+            # web fallback 决策见 _resolve_docs()，会检查 rerank_score 和 score。
+            docs = mmr_docs
+            for doc in docs:
+                doc.metadata["score"] = 0.5  # MMR 中性分：诚实表示非纯相似度排序
         else:
             # 普通相似度检索
             docs = vector_store.similarity_search_with_relevance_scores(
@@ -210,7 +200,7 @@ def get_all_documents() -> List[dict]:
             files[filename] = {"id": doc_id, "chunks": 0}
         files[filename]["chunks"] += 1
     return [
-        {"id": v["id"].split("_")[0] if "_" in v["id"] else v["id"],
+        {"id": v["id"],  # ChromaDB 生成的 UUID，作为文档的唯一标识
          "filename": k, "chunk_count": v["chunks"]}
         for k, v in files.items()
     ]
