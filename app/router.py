@@ -45,17 +45,18 @@ router = APIRouter(prefix="/api", tags=["RAG API"])
 
 # ========== Web 搜索 fallback 决策门 ==========
 
-def _resolve_docs(query: str, docs: list, top_k: int) -> tuple:
+def _resolve_docs(query: str, docs: list, top_k: int, force_web_search: bool = False) -> tuple:
     """
     检查知识库检索质量，必要时自动 fallback 到 Web 搜索补全上下文。
 
     router 非流式、流式两条路径共享同一决策逻辑，避免重复代码。
 
     决策矩阵：
-        1. web_search_enabled=False → 原样返回 KB docs
-        2. KB 空       → 直接走 Web 搜索
-        3. KB 最高分 < 阈值 → KB + Web 合并
-        4. KB 最高分 ≥ 阈值 → 原样返回 KB docs
+        0. web_search_enabled=False → 原样返回 KB docs（全局总闸）
+        1. force_web_search=True    → KB + Web 强制合并（前端勾选"联网搜索"）
+        2. KB 空                    → 直接走 Web 搜索
+        3. KB 最高分 < 阈值          → KB + Web 合并
+        4. KB 最高分 ≥ 阈值          → 原样返回 KB docs
 
     返回: (docs, web_used)
     """
@@ -67,6 +68,16 @@ def _resolve_docs(query: str, docs: list, top_k: int) -> tuple:
         from app.web_search import web_search
         web_docs = web_search(query, num_results=top_k)
         return web_docs, bool(web_docs)
+
+    # 强制联网：跳过阈值检查，直接合并 Web 结果
+    if force_web_search:
+        from app.web_search import web_search
+        web_docs = web_search(query, num_results=max(3, top_k - len(docs)))
+        if web_docs:
+            logger.info("Web 强制搜索：合并 %d 条 web 结果", len(web_docs))
+            return docs + web_docs, True
+        logger.info("Web 强制搜索无结果，继续使用知识库结果")
+        return docs, False
 
     # 有结果，检查最高分
     max_score = max(
@@ -138,6 +149,7 @@ async def chat(body: ChatRequest, request: Request):
         query=body.query,
         docs=docs,
         top_k=body.top_k,
+        force_web_search=body.force_web_search,
     )
 
     final_docs = docs

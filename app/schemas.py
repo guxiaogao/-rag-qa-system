@@ -40,6 +40,7 @@ class ChatRequest(BaseModel):
     use_mmr: bool = False               # 是否使用 MMR 增加多样性
     temperature: float = settings.llm_temperature  # LLM 生成温度（0-1）
     conversation_history: list[ChatMessage] = []  # 多轮对话历史（按时间顺序，最近 3 轮即可）
+    force_web_search: bool = False          # 前端勾选"联网搜索"后强制搜网，忽略阈值判断
 
 
 class ChatResponse(BaseModel):

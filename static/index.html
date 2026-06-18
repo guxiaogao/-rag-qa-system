@@ -41,6 +41,12 @@
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:8px; font-size:14px; z-index:9999; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
   .toast.ok { background:#e8f5e9; color:#2e7d32; border:1px solid #4caf50; }
   .toast.err { background:#fce4ec; color:#c62828; border:1px solid #e53935; }
+  .web-toggle { display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid #ddd; border-radius:20px; font-size:13px; cursor:pointer; user-select:none; transition:all 0.2s; white-space:nowrap; }
+  .web-toggle.on { background:#e3f2fd; border-color:#003d7a; color:#003d7a; }
+  .web-toggle .dot { width:8px; height:8px; border-radius:50%; background:#ccc; }
+  .web-toggle.on .dot { background:#003d7a; }
+  .web-indicator { font-size:12px; color:#666; margin-top:4px; }
+  .web-indicator.active { color:#003d7a; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
@@ -54,6 +60,9 @@
   </div>
   <div class="input-area">
     <input id="query" placeholder="输入问题，比如：违纪怎么处理？" onkeydown="if(event.key==='Enter') send()"/>
+    <label class="web-toggle" id="webToggle" onclick="toggleWeb()" title="勾选后强制搜索网络补充资料">
+      <span class="dot"></span> 联网
+    </label>
     <button id="sendBtn" onclick="send()">发送</button>
   </div>
 </div>
@@ -63,6 +72,13 @@ const UPLOAD_API = '/api/documents/upload';
 const MAX_HISTORY = 6;  // 最近 3 轮对话（每轮 = 用户 + 助手）
 let conversationHistory = [];
 let _fileInput = null;
+let forceWebSearch = false;
+
+function toggleWeb() {
+  forceWebSearch = !forceWebSearch;
+  const el = document.getElementById('webToggle');
+  if (forceWebSearch) el.classList.add('on'); else el.classList.remove('on');
+}
 
 function addMsg(role, text, sources) {
   const div = document.createElement('div');
@@ -125,6 +141,7 @@ async function send() {
     use_reranker: true,
     use_rewrite: true,
     stream: true,
+    force_web_search: forceWebSearch,
     conversation_history: conversationHistory,
   };
 
@@ -182,6 +199,15 @@ async function send() {
             const names = sources.map((s, i) => `[${i + 1}] ${s.filename}`).join('，');
             srcDiv.textContent = '📎 参考来源：' + names;
             textDiv.parentNode.appendChild(srcDiv);
+          }
+        } else if (data.type === 'meta') {
+          if (data.web_search_used && textDiv && textDiv.parentNode) {
+            const oldMeta = textDiv.parentNode.querySelector('.web-indicator');
+            if (oldMeta) oldMeta.remove();
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'web-indicator active';
+            metaDiv.textContent = '🌐 本次回答参考了网络搜索结果';
+            textDiv.parentNode.appendChild(metaDiv);
           }
         } else if (data.type === 'error') {
           if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }

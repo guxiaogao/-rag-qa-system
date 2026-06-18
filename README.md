@@ -48,9 +48,9 @@
 | 特性 | 说明 | 控制方式 |
 |------|------|----------|
 | **流式输出 (SSE)** | 逐 token 推送，打字机效果 | 默认（全部请求走 SSE） |
-| **Web 搜索 Fallback** | KB 不足时自动搜 DuckDuckGo 补全上下文 | `WEB_SEARCH_ENABLED` + 阈值自动决策 |
+| **Web 搜索 Fallback** | KB 不足时自动搜 DuckDuckGo 补全上下文 | `WEB_SEARCH_ENABLED` + 阈值自动决策 / 前端可强制联网 |
 
-> **设计原则**：重排序和查询重写由服务端环境变量统一控制，前端无需传参。Web 搜索由相关性阈值自动决策，无需用户介入。
+> **设计原则**：重排序和查询重写由服务端环境变量统一控制，前端无需传参。Web 搜索默认由相关性阈值自动决策，用户也可在前端勾选"联网"强制搜索。
 
 ### 评估体系
 
@@ -171,5 +171,5 @@ python scripts/init_db.py
 2. **优雅降级** — Query Rewrite 失败 → 用原始查询；Web Search 失败 → 继续用 KB 结果；Faithfulness Check 失败 → 保守返回 1.0
 3. **API 优先** — 重排序走 DashScope gte-rerank API，无需本地模型，彻底消除 PyTorch/PyArrow DLL 冲突，Docker 镜像体积大幅缩减
 4. **纯 Python 分块** — 自主实现 `RecursiveTextSplitter`，避免 `langchain_text_splitters` 在部分 Windows 环境的 Rust tiktoken segfault 问题
-5. **全自动管道** — 重排序、查询重写、流式输出均由服务端默认开启，Web 搜索按相关性阈值自动决策，调用方只需传 `query` 即可
+5. **智能管道** — 重排序、查询重写、流式输出均由服务端默认开启，Web 搜索默认按相关性阈值自动决策，前端提供"联网"开关供用户主动触发
 6. **SSE 流式** — 全部请求走 SSE 事件流，逐 token 推送，检索/生成/错误的全生命周期在 SSE 通道内闭环
