@@ -22,11 +22,12 @@ COPY scripts/ ./scripts/
 COPY evaluation/ ./evaluation/
 COPY static/ ./static/
 COPY data/source_docs/ ./data/source_docs/
+COPY docker-entrypoint.sh /app/
 
 # 创建数据目录
-RUN mkdir -p /app/data/chroma_db /app/data/temp
+RUN mkdir -p /app/data/chroma_db /app/data/temp && \
+    chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 8000
 
-# 首次启动前需要手动运行 init_db.py 初始化向量库
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

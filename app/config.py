@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     chat_model: str = "qwen-plus"
    
     # 向量化用的 embedding 模型
-    embedding_model: str = "text-embedding-v2"
+    embedding_model: str = "text-embedding-v3"
   
     # 评估时做裁判用的模型（用便宜的就行）
     judge_model: str = "qwen-turbo"
@@ -57,19 +57,6 @@ class Settings(BaseSettings):
     # 用于查询重写的模型（用便宜的就行，qwen-turbo 足够做关键词提取）
     rewrite_model: str = "qwen-turbo"
 
-    # ========== Self-RAG 参数 ==========
-    # 是否启用 Self-RAG 自我反思（服务端总开关）
-    self_rag_enabled: bool = False
-
-    # Self-RAG 最大精炼轮次（超过此轮次停止，即使忠实度仍未达标）
-    self_rag_max_rounds: int = 2
-
-    # 忠实度阈值（0-1）。低于此分数时触发重新检索和重新生成
-    self_rag_faithfulness_threshold: float = 0.7
-
-    # 精炼轮次中重新检索的 top_k
-    self_rag_refine_top_k: int = 3
-
     # ========== LLM 生成参数 ==========
     # 生成温度（0-1），越高越随机、越低越确定
     llm_temperature: float = 0.8
@@ -79,8 +66,8 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 10
 
     # ========== Web 搜索配置 ==========
-    # 是否启用 Web 搜索 fallback（服务端总开关）
-    # 关闭时即使 API 传 use_web_search=true 也不生效
+    # 是否启用 Web 搜索 fallback（服务端总开关）。
+    # 开启后，KB 检索结果质量不足时自动搜索互联网补全上下文。
     web_search_enabled: bool = False
 
     # 知识库检索相关性阈值（0-1）
@@ -90,6 +77,11 @@ class Settings(BaseSettings):
 
     # Web 搜索结果数量
     web_search_num_results: int = 5
+
+    # ========== CORS 配置 ==========
+    # 允许的跨域来源，逗号分隔多个域名。
+    # 开发/本地调试使用 "*"（默认）；生产环境请设置为具体域名，如 "https://your-app.example.com"
+    cors_origins: str = "*"
 
     # ========== 系统配置 ==========
     # 向量数据库持久化路径
@@ -101,6 +93,10 @@ class Settings(BaseSettings):
     # DashScope OpenAI 兼容接口地址（不需要改）
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
+    # ========== 上传限制 ==========
+    # 单次上传文件大小上限（MB）
+    max_upload_size_mb: int = 10
+
     class Config:
         env_file = _ENV_FILE
         env_file_encoding = "utf-8"
@@ -109,3 +105,11 @@ class Settings(BaseSettings):
 
 # 全局单例配置
 settings = Settings()
+
+# ========== 限流器 ==========
+# 单例 Limiter，供 main.py 注册中间件、router.py 装饰端点使用。
+# key_func=get_remote_address 按客户端 IP 独立计数。
+from slowapi import Limiter as _Limiter
+from slowapi.util import get_remote_address as _get_remote_address
+
+limiter = _Limiter(key_func=_get_remote_address, default_limits=["200/minute"])

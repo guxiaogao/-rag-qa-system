@@ -16,7 +16,7 @@
   .msg .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
   .msg.assistant .avatar { background: #e3f2fd; color: #003d7a; }
   .msg.user .avatar { background: #003d7a; color: white; }
-  .msg .text { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; word-break: break-word; }
+  .msg .text { max-width: 75%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.6; word-break: break-word; white-space: pre-wrap; }
   .msg.user .text { background: #003d7a; color: white; }
   .msg.assistant .text { background: #f0f0f0; color: #333; }
   .msg .meta { font-size: 12px; color: #999; margin-top: 4px; }
@@ -40,7 +40,6 @@
     <label><input type="checkbox" id="opt_stream" checked> 流式输出</label>
     <label><input type="checkbox" id="opt_rerank"> 重排序</label>
     <label><input type="checkbox" id="opt_rewrite"> 查询优化</label>
-    <label><input type="checkbox" id="opt_selfrag"> Self-RAG</label>
     <button onclick="newChat()" style="margin-left:auto;padding:4px 12px;background:#eee;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;">🔄 新对话</button>
   </div>
   <div class="input-area">
@@ -56,10 +55,32 @@ let conversationHistory = [];
 function addMsg(role, text, sources) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.innerHTML = `<div class="avatar">${role==='user'?'我':'AI'}</div>
-    <div><div class="text">${text}</div>
-    ${sources ? `<div class="sources">📎 参考来源：${sources.map((s,i) => `[${i+1}] ${s.filename}`).join('，')}</div>` : ''}
-    </div>`;
+
+  // 头像 — 纯字面量，safe
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = role === 'user' ? '我' : 'AI';
+  div.appendChild(avatar);
+
+  // 消息体容器
+  const body = document.createElement('div');
+
+  // 文本 — 使用 textContent，防止 XSS
+  const textDiv = document.createElement('div');
+  textDiv.className = 'text';
+  textDiv.textContent = text;
+  body.appendChild(textDiv);
+
+  // 参考来源 — 每个文件名用 textContent，防止注入
+  if (sources && sources.length) {
+    const srcDiv = document.createElement('div');
+    srcDiv.className = 'sources';
+    const names = sources.map((s, i) => `[${i + 1}] ${s.filename}`).join('，');
+    srcDiv.textContent = '📎 参考来源：' + names;
+    body.appendChild(srcDiv);
+  }
+
+  div.appendChild(body);
   document.getElementById('messages').appendChild(div);
   document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
 }
@@ -80,12 +101,18 @@ async function send() {
   input.value = ''; btn.disabled = true;
   addMsg('user', q);
 
+  // 显示"思考中"加载态
+  let loadingDiv = document.createElement('div');
+  loadingDiv.className = 'loading';
+  loadingDiv.textContent = '正在思考…';
+  document.getElementById('messages').appendChild(loadingDiv);
+  document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+
   const stream = document.getElementById('opt_stream').checked;
   const body = {
     query: q, top_k: 5,
     use_reranker: document.getElementById('opt_rerank').checked,
     use_rewrite: document.getElementById('opt_rewrite').checked,
-    use_self_rag: document.getElementById('opt_selfrag').checked,
     stream: stream,
     conversation_history: conversationHistory,
   };
@@ -111,13 +138,43 @@ async function send() {
         const data = JSON.parse(line.slice(6));
         if (data.type === 'token') {
           answer += data.content;
-          if (!msgDiv) { msgDiv = document.createElement('div'); msgDiv.className = 'msg assistant'; textDiv = document.createElement('div'); msgDiv.innerHTML = '<div class="avatar">AI</div>'; msgDiv.appendChild(textDiv); document.getElementById('messages').appendChild(msgDiv); }
-          textDiv.innerHTML = `<div class="text">${answer.replace(/\n/g,'<br>')}</div>`;
+          if (!msgDiv) {
+            // 收到第一个 token，移除加载态
+            if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
+
+            msgDiv = document.createElement('div');
+            msgDiv.className = 'msg assistant';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar';
+            avatar.textContent = 'AI';
+            msgDiv.appendChild(avatar);
+
+            const body = document.createElement('div');
+            textDiv = document.createElement('div');
+            textDiv.className = 'text';
+            body.appendChild(textDiv);
+            msgDiv.appendChild(body);
+
+            document.getElementById('messages').appendChild(msgDiv);
+          }
+          textDiv.textContent = answer;
           document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         } else if (data.type === 'sources') {
           sources = data.sources;
-          if (textDiv) textDiv.innerHTML += `<div class="sources">📎 参考来源：${sources.map((s,i) => `[${i+1}] ${s.filename}`).join('，')}</div>`;
+          if (textDiv && textDiv.parentNode) {
+            // 移除旧的 sources div（流式可能多次推送）
+            const oldSrc = textDiv.parentNode.querySelector('.sources');
+            if (oldSrc) oldSrc.remove();
+
+            const srcDiv = document.createElement('div');
+            srcDiv.className = 'sources';
+            const names = sources.map((s, i) => `[${i + 1}] ${s.filename}`).join('，');
+            srcDiv.textContent = '📎 参考来源：' + names;
+            textDiv.parentNode.appendChild(srcDiv);
+          }
         } else if (data.type === 'error') {
+          if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
           addMsg('assistant', `❌ ${data.message}`);
         }
       }
@@ -135,9 +192,12 @@ async function send() {
       const err = await resp.json().catch(() => ({}));
       throw new Error(err.message || `服务器错误 (${resp.status})`);
     }
+    // 非流式回答返回，移除加载态
+    if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
+
     const json = await resp.json();
     const sources_info = json.sources?.length ? json.sources : null;
-    addMsg('assistant', json.answer.replace(/\n/g,'<br>'), sources_info);
+    addMsg('assistant', json.answer, sources_info);
     // 记录本轮对话历史
     conversationHistory.push({role: 'user', content: q});
     conversationHistory.push({role: 'assistant', content: json.answer});
@@ -146,6 +206,7 @@ async function send() {
     }
   }
   } catch (e) {
+    if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
     addMsg('assistant', `❌ ${e.message || '网络连接失败，请检查服务是否已启动'}`);
   } finally {
     btn.disabled = false;

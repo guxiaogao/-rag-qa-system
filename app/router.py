@@ -19,22 +19,21 @@ import logging
 import json
 import asyncio
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, Request, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 from typing import List
 
 from app.schemas import (
-    ChatRequest, ChatResponse, Source, SelfRagMeta,
+    ChatRequest, ChatResponse, Source,
     SearchRequest, SearchResponse,
     DocumentInfo, DocumentListResponse,
     UploadResponse, DeleteResponse, HealthResponse,
 )
 from app.retriever import retrieve, get_all_documents, delete_document
 from app.generator import generate_answer, generate_answer_stream
-from app.self_rag import self_rag_loop
 from app.document_loader import load_and_split
 from app.database import get_vector_store
-from app.config import settings, PROJECT_ROOT
+from app.config import settings, PROJECT_ROOT, limiter
 from app.exceptions import GenerationException
 
 # 路由层日志
@@ -46,21 +45,21 @@ router = APIRouter(prefix="/api", tags=["RAG API"])
 
 # ========== Web 搜索 fallback 决策门 ==========
 
-def _resolve_docs(query: str, docs: list, top_k: int, use_web: bool) -> tuple:
+def _resolve_docs(query: str, docs: list, top_k: int) -> tuple:
     """
     检查知识库检索质量，必要时自动 fallback 到 Web 搜索补全上下文。
 
     router 非流式、流式两条路径共享同一决策逻辑，避免重复代码。
 
     决策矩阵：
-        1. use_web=False 或 web_search_enabled=False → 原样返回 KB docs
+        1. web_search_enabled=False → 原样返回 KB docs
         2. KB 空       → 直接走 Web 搜索
         3. KB 最高分 < 阈值 → KB + Web 合并
         4. KB 最高分 ≥ 阈值 → 原样返回 KB docs
 
     返回: (docs, web_used)
     """
-    if not use_web or not settings.web_search_enabled:
+    if not settings.web_search_enabled:
         return docs, False
 
     # 空知识库：直接走 Web
@@ -111,7 +110,8 @@ async def health_check():
 
 # ========== 问答接口 ==========
 @router.post("/chat")
-async def chat(request: ChatRequest):
+@limiter.limit("60/minute")
+async def chat(request: ChatRequest, req: Request):
     """
     核心问答接口。
 
@@ -134,7 +134,8 @@ async def chat(request: ChatRequest):
         # 将 Pydantic 模型转为 dict，供 generator 使用
         history_dicts = [m.model_dump() for m in request.conversation_history]
 
-        docs = retrieve(
+        docs = await asyncio.to_thread(
+            retrieve,
             query=request.query,
             top_k=request.top_k,
             use_mmr=request.use_mmr,
@@ -147,35 +148,16 @@ async def chat(request: ChatRequest):
             query=request.query,
             docs=docs,
             top_k=request.top_k,
-            use_web=request.use_web_search,
         )
 
-        # ---- Self-RAG 自我反思 ----
-        self_rag_meta = None
-        if request.use_self_rag and settings.self_rag_enabled:
-            result = self_rag_loop(
-                query=request.query,
-                docs=docs,
-                temperature=request.temperature,
-                max_rounds=settings.self_rag_max_rounds,
-                faithfulness_threshold=settings.self_rag_faithfulness_threshold,
-                refine_top_k=settings.self_rag_refine_top_k,
-                conversation_history=history_dicts,
-            )
-            answer = result["answer"]
-            docs = result["docs"]
-            self_rag_meta = SelfRagMeta(
-                rounds=result["rounds"],
-                faithfulness_scores=result["faithfulness_scores"],
-                degraded=result.get("degraded", False),
-            )
-        else:
-            answer = generate_answer(
-                query=request.query,
-                docs=docs,
-                temperature=request.temperature,
-                conversation_history=history_dicts,
-            )
+        # 调用 LLM 生成回答
+        answer = await asyncio.to_thread(
+            generate_answer,
+            query=request.query,
+            docs=docs,
+            temperature=request.temperature,
+            conversation_history=history_dicts,
+        )
 
         sources = [
             Source(
@@ -192,7 +174,6 @@ async def chat(request: ChatRequest):
             answer=answer,
             sources=sources,
             llm_model=settings.chat_model,
-            self_rag=self_rag_meta,
             web_search_used=web_used,
         )
 
@@ -200,17 +181,14 @@ async def chat(request: ChatRequest):
     # 将 Pydantic 模型转为 dict，供 generator 使用
     history_dicts = [m.model_dump() for m in request.conversation_history]
 
-    # 检索在 SSE 开始前执行（同步函数在线程池中跑，避免阻塞事件循环）
-    loop = asyncio.get_event_loop()
-    docs = await loop.run_in_executor(
-        None,
-        lambda: retrieve(
-            query=request.query,
-            top_k=request.top_k,
-            use_mmr=request.use_mmr,
-            use_reranker=request.use_reranker,
-            use_rewrite=request.use_rewrite,
-        ),
+    # 检索在 SSE 开始前执行（同步函数送入线程池，避免阻塞事件循环）
+    docs = await asyncio.to_thread(
+        retrieve,
+        query=request.query,
+        top_k=request.top_k,
+        use_mmr=request.use_mmr,
+        use_reranker=request.use_reranker,
+        use_rewrite=request.use_rewrite,
     )
 
     # ---- Web 搜索 fallback ----
@@ -218,32 +196,7 @@ async def chat(request: ChatRequest):
         query=request.query,
         docs=docs,
         top_k=request.top_k,
-        use_web=request.use_web_search,
     )
-
-    # ---- Self-RAG 预检（流式传输任何 token 之前完成）----
-    # 复用 self_rag_loop() 而非手写内联逻辑，与非流式路径保持一致
-    self_rag_rounds = 0
-    self_rag_scores: list[float] = []
-    self_rag_degraded = False
-    if request.use_self_rag and settings.self_rag_enabled:
-        # 注意：lambda 默认参数绑定 history_dicts，防止闭包延迟绑定
-        result = await loop.run_in_executor(
-            None,
-            lambda _h=history_dicts: self_rag_loop(
-                query=request.query,
-                docs=docs,
-                temperature=request.temperature,
-                max_rounds=settings.self_rag_max_rounds,
-                faithfulness_threshold=settings.self_rag_faithfulness_threshold,
-                refine_top_k=settings.self_rag_refine_top_k,
-                conversation_history=_h,
-            ),
-        )
-        docs = result["docs"]
-        self_rag_rounds = result["rounds"]
-        self_rag_scores = result["faithfulness_scores"]
-        self_rag_degraded = result.get("degraded", False)
 
     # 预先格式化来源数据
     final_docs = docs
@@ -262,15 +215,12 @@ async def chat(request: ChatRequest):
     async def event_generator(
         _docs=final_docs,
         _sources=sources_data,
-        _rounds=self_rag_rounds,
-        _scores=self_rag_scores,
-        _degraded=self_rag_degraded,
         _web_used=web_used,
         _query=request.query,
         _temperature=request.temperature,
         _history=history_dicts,
     ):
-        """SSE 事件生成器：token → sources → self_rag 元数据 → web_search_used → done
+        """SSE 事件生成器：token → sources → web_search_used → done
 
         使用默认参数显式绑定闭包变量（Python 在函数定义时求值默认参数），
         防御未来重构时将本函数提取到 router 外导致延迟绑定的 bug。
@@ -287,10 +237,6 @@ async def chat(request: ChatRequest):
 
             # 推送检索来源
             yield f"data: {json.dumps({'type': 'sources', 'sources': _sources}, ensure_ascii=False)}\n\n"
-
-            # 推送 Self-RAG 元数据（如果有）
-            if _rounds > 0:
-                yield f"data: {json.dumps({'type': 'self_rag', 'rounds': _rounds, 'faithfulness_scores': _scores, 'degraded': _degraded}, ensure_ascii=False)}\n\n"
 
             # 推送 Web 搜索标记
             yield f"data: {json.dumps({'type': 'meta', 'web_search_used': _web_used}, ensure_ascii=False)}\n\n"
@@ -319,13 +265,15 @@ async def chat(request: ChatRequest):
 
 # ========== 仅检索接口（调试用）==========
 @router.post("/search", response_model=SearchResponse)
-async def search(request: SearchRequest):
+@limiter.limit("120/minute")
+async def search(request: SearchRequest, req: Request):
     """
     仅检索不生成回答，用于调试和查看检索效果。
 
     异常处理：检索失败时，RetrievalException 传播到全局处理器。
     """
-    docs = retrieve(
+    docs = await asyncio.to_thread(
+        retrieve,
         query=request.query,
         top_k=request.top_k,
         use_mmr=request.use_mmr,
@@ -358,19 +306,22 @@ async def list_documents():
 
 
 @router.post("/documents/upload", response_model=UploadResponse)
-async def upload_document(file: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def upload_document(request: Request, file: UploadFile = File(...)):
     """
     上传文档并自动索引到向量库。
 
-    支持格式：.txt, .md, .pdf
-    流程：验证类型 → 保存临时文件 → 加载 → 分块 → 存入 ChromaDB
+    支持格式：.txt, .md, .pdf（文件大小上限见配置 MAX_UPLOAD_SIZE_MB）。
+    流程：验证类型 → 验证大小 → 保存临时文件 → 加载 → 分块 → 存入 ChromaDB
 
     异常：
-    - HTTPException(400)：文件格式不支持
+    - HTTPException(400)：文件格式不支持或文件过大
     - DocumentProcessingException：文档加载或分块失败
     - VectorStoreException：向量库存入失败
     以上异常均由全局异常处理器统一格式化返回。
     """
+    max_size_bytes = settings.max_upload_size_mb * 1024 * 1024
+
     # 验证文件类型（在 router 层做，属于 API 参数校验，用 HTTPException 最合适）
     ext = os.path.splitext(file.filename or "")[1].lower()
     if ext not in (".txt", ".md", ".pdf"):
@@ -379,12 +330,20 @@ async def upload_document(file: UploadFile = File(...)):
             detail=f"不支持的文件格式：{ext}，仅支持 .txt, .md, .pdf",
         )
 
+    # 验证文件大小（读取内容后检查，防止超大文件耗尽 embedding 配额）
+    content = await file.read()
+    if len(content) > max_size_bytes:
+        raise HTTPException(
+            status_code=400,
+            detail=f"文件过大（{len(content) / 1024 / 1024:.1f}MB），"
+                   f"上限为 {settings.max_upload_size_mb}MB",
+        )
+
     # 保存临时文件
     temp_dir = os.path.join(PROJECT_ROOT, "data", "temp")
     os.makedirs(temp_dir, exist_ok=True)
     temp_path = os.path.join(temp_dir, f"{uuid.uuid4()}{ext}")
     try:
-        content = await file.read()
         with open(temp_path, "wb") as f:
             f.write(content)
 

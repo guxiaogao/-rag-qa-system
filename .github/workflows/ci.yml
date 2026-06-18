@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:        # 手动触发全量 benchmark
+
+jobs:
+  # ============================
+  # PR 分支：快速检查（无需 API Key，~30s）
+  # ============================
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run CI verify (PR mode)
+        run: python scripts/ci_verify.py --mode pr
+
+  # ============================
+  # main 分支合并后：全量集成验证（需 API Key，~2min）
+  # ============================
+  integration:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Init vector DB
+        env:
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: python scripts/init_db.py
+
+      - name: Run full verify
+        env:
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: python scripts/verify.py
+
+      - name: Smoke evaluation (3 samples, 1 config)
+        env:
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: python -m evaluation.run_baseline --smoke
+
+  # ============================
+  # 手动触发：全量 benchmark（10 样本 × 4 配置，~5min）
+  # 仅在 workflow_dispatch 时运行，避免每次合并烧大量 API 费用
+  # ============================
+  benchmark:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Full benchmark
+        env:
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: python -m evaluation.run_baseline

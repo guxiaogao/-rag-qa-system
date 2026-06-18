@@ -33,7 +33,6 @@ def step1():
     print(f"  top_k: {settings.top_k}")
     print(f"  rerank_enabled: {settings.rerank_enabled}")
     print(f"  rewrite_enabled: {settings.rewrite_enabled}")
-    print(f"  self_rag_enabled: {settings.self_rag_enabled}")
 check("1. 配置加载", step1)
 
 
@@ -94,15 +93,15 @@ def step5():
 check("5. Prompt 格式化", step5)
 
 
-# ── 6. Self-RAG 评分提取 ──
+# ── 6. 分数提取 ──
 def step6():
-    from app.self_rag import _extract_score
+    from app.utils import extract_score as _extract_score
     assert _extract_score("8") == 0.8
     assert _extract_score("8/10") == 0.8
     assert _extract_score("0.85") == 0.85
     assert _extract_score("分数：7") == 0.7
     print("  所有格式解析正确: '8'→0.8, '8/10'→0.8, '0.85'→0.85, '分数：7'→0.7")
-check("6. Self-RAG 评分提取", step6)
+check("6. 分数提取", step6)
 
 
 # ── 7. ChromaDB 连接 & 检索 ──

@@ -27,7 +27,7 @@ def get_judge_llm(temperature: float = 0.0):
     return get_cached_llm(model=settings.judge_model, temperature=temperature)
 
 
-from app.utils import extract_score as _extract_score  # 共享工具函数，与 app/self_rag.py 同源
+from app.utils import extract_score as _extract_score  # 共享工具函数
 
 
 # ========== 指标 1：Faithfulness（忠实度）==========

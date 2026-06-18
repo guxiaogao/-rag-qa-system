@@ -4,7 +4,7 @@
 使用 Pydantic 进行数据验证。
 """
 
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
 
 from app.config import settings
@@ -35,18 +35,9 @@ class ChatRequest(BaseModel):
     use_mmr: bool = False               # 是否使用 MMR 增加多样性
     use_reranker: bool = False          # 是否使用 Rerank API 重排序
     use_rewrite: bool = False           # 是否使用 LLM 查询重写（优化检索关键词）
-    use_self_rag: bool = False          # 是否启用 Self-RAG 自我反思
-    use_web_search: bool = False         # 是否允许 Web 搜索 fallback（KB 不足时补全）
     temperature: float = settings.llm_temperature  # LLM 生成温度（0-1）
     stream: bool = False                # true=SSE流式输出, false=JSON一次性返回
     conversation_history: list[ChatMessage] = []  # 多轮对话历史（按时间顺序，最近 3 轮即可）
-
-
-class SelfRagMeta(BaseModel):
-    """Self-RAG 元数据（精炼过程信息）"""
-    rounds: int = 0                              # 实际精炼轮次
-    faithfulness_scores: List[float] = []         # 每轮的忠实度分数
-    degraded: bool = False                       # 是否发生了静默降级（如裁判 LLM 不可用）
 
 
 class ChatResponse(BaseModel):
@@ -54,7 +45,6 @@ class ChatResponse(BaseModel):
     answer: str                        # 生成的回答
     sources: List[Source]              # 检索来源（用于展示和验证）
     llm_model: str                     # 使用的模型名称
-    self_rag: Optional[SelfRagMeta] = None  # Self-RAG 元数据（未启用时为 null）
     web_search_used: bool = False      # 本次回答是否触发了 Web 搜索 fallback
 
 

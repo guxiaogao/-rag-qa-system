@@ -1,11 +1,16 @@
 """
 Baseline evaluation script.
-Usage: ../.venv/Scripts/python.exe -m evaluation.run_baseline
+Usage:
+  python -m evaluation.run_baseline                  # Full: 10 questions × 4 configs
+  python -m evaluation.run_baseline --smoke          # Smoke: 3 questions × 1 config
+  python -m evaluation.run_baseline --smoke --top-n 5  # Smoke: 5 questions × 1 config
 """
 
 import sys
 import os
 import io
+import argparse
+import copy
 
 # Fix Windows GBK encoding issues
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -17,53 +22,79 @@ from evaluation.experiment import Experiment, ExperimentConfig
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--smoke", action="store_true",
+                        help="Smoke test mode: only 3 samples × 1 config")
+    parser.add_argument("--top-n", type=int, default=3,
+                        help="Number of samples in smoke mode (default: 3)")
+    args = parser.parse_args()
+
     exp = Experiment()
 
-    configs = [
-        ExperimentConfig(
-            name="baseline",
-            chunk_size=500,
-            chunk_overlap=100,
-            top_k=5,
-            use_mmr=False,
-            use_reranker=False,
-            use_rewrite=False,
-            description="Dense retrieval only, no optimization",
-        ),
-        ExperimentConfig(
-            name="+Rerank",
-            chunk_size=500,
-            chunk_overlap=100,
-            top_k=5,
-            use_mmr=False,
-            use_reranker=True,
-            use_rewrite=False,
-            description="Dense + gte-rerank",
-        ),
-        ExperimentConfig(
-            name="+Rewrite",
-            chunk_size=500,
-            chunk_overlap=100,
-            top_k=5,
-            use_mmr=False,
-            use_reranker=False,
-            use_rewrite=True,
-            description="LLM query rewrite + Dense",
-        ),
-        ExperimentConfig(
-            name="+Rewrite+Rerank",
-            chunk_size=500,
-            chunk_overlap=100,
-            top_k=5,
-            use_mmr=False,
-            use_reranker=True,
-            use_rewrite=True,
-            description="Rewrite + Dense + gte-rerank",
-        ),
-    ]
+    if args.smoke:
+        # 冒烟模式：少量样本 + 1 组配置，仅验证链路通断
+        top_n = min(args.top_n, len(exp.test_data))
+        exp.test_data = exp.test_data[:top_n]
+        configs = [
+            ExperimentConfig(
+                name="baseline",
+                chunk_size=500,
+                chunk_overlap=100,
+                top_k=5,
+                use_mmr=False,
+                use_reranker=False,
+                use_rewrite=False,
+                description="Smoke test (dense retrieval only)",
+            ),
+        ]
+        label = f"SMOKE TEST: {top_n} Questions × 1 Config"
+    else:
+        configs = [
+            ExperimentConfig(
+                name="baseline",
+                chunk_size=500,
+                chunk_overlap=100,
+                top_k=5,
+                use_mmr=False,
+                use_reranker=False,
+                use_rewrite=False,
+                description="Dense retrieval only, no optimization",
+            ),
+            ExperimentConfig(
+                name="+Rerank",
+                chunk_size=500,
+                chunk_overlap=100,
+                top_k=5,
+                use_mmr=False,
+                use_reranker=True,
+                use_rewrite=False,
+                description="Dense + gte-rerank",
+            ),
+            ExperimentConfig(
+                name="+Rewrite",
+                chunk_size=500,
+                chunk_overlap=100,
+                top_k=5,
+                use_mmr=False,
+                use_reranker=False,
+                use_rewrite=True,
+                description="LLM query rewrite + Dense",
+            ),
+            ExperimentConfig(
+                name="+Rewrite+Rerank",
+                chunk_size=500,
+                chunk_overlap=100,
+                top_k=5,
+                use_mmr=False,
+                use_reranker=True,
+                use_rewrite=True,
+                description="Rewrite + Dense + gte-rerank",
+            ),
+        ]
+        label = "FULL: 10 Questions × 4 Configs"
 
     print("=" * 70)
-    print("[RAG Baseline Evaluation] 10 Questions x 4 Configs")
+    print(f"[RAG Baseline Evaluation] {label}")
     print("=" * 70)
 
     df = exp.compare(configs)

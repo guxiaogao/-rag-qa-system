@@ -28,5 +28,8 @@ pypdf>=4.0.0
 # === Web 搜索 ===
 duckduckgo-search>=7.0.0
 
+# === 限流保护 ===
+slowapi>=0.1.9
+
 # === 评估与实验 ===
 pandas>=2.0.0

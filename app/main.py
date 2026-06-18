@@ -9,9 +9,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+from slowapi.middleware import SlowAPIMiddleware
+
 from app.router import router
 from app.error_handlers import register_exception_handlers
-from app.config import PROJECT_ROOT
+from app.config import PROJECT_ROOT, settings, limiter
 
 # 创建 FastAPI 应用实例
 app = FastAPI(
@@ -20,14 +22,29 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# 配置 CORS（允许跨域访问，方便前端调试）
+# 配置 CORS
+# cors_origins 支持两种形式：
+#   "*"               → 开发/本地调试，允许所有来源（注意：此时 allow_credentials 必须为 False）
+#   "https://a.com,https://b.com"  → 生产环境，逗号分隔的具体域名列表
+_cors_raw = settings.cors_origins.strip()
+if _cors_raw == "*":
+    _origins = ["*"]
+    _allow_credentials = False
+else:
+    _origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+    _allow_credentials = True
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],            # 生产环境应限制具体域名
-    allow_credentials=True,
+    allow_origins=_origins,
+    allow_credentials=_allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 注册限流中间件（必须在 CORS 之后，否则预检请求 OPTIONS 不走限流）
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 # 注册全局异常处理器（异常处理器不依赖路由注册顺序，先注册也没问题）
 register_exception_handlers(app)
