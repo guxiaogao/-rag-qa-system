@@ -88,7 +88,7 @@
 ```env
 # ========== 模型配置 ==========
 DASHSCOPE_API_KEY=sk-...
-CHAT_MODEL=qwen-plus              # 答案生成模型
+CHAT_MODEL=qwen-max               # 答案生成模型（旗舰模型，表达更自然）
 JUDGE_MODEL=qwen-turbo            # 评估/重写/裁判模型 (便宜)
 EMBEDDING_MODEL=text-embedding-v2 # 向量化模型
 

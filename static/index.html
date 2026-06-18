@@ -20,6 +20,14 @@
   .msg.user .text { background: #003d7a; color: white; }
   .msg.assistant .text { background: #f0f0f0; color: #333; }
   .msg .meta { font-size: 12px; color: #999; margin-top: 4px; }
+  .msg.assistant .text ul, .msg.assistant .text ol { padding-left: 20px; margin: 6px 0; }
+  .msg.assistant .text li { margin: 2px 0; }
+  .msg.assistant .text strong { color: #003d7a; }
+  .msg.assistant .text code { background: #e8e8e8; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+  .msg.assistant .text p { margin: 4px 0; }
+  .msg.assistant .text p:first-child { margin-top: 0; }
+  .msg.assistant .text p:last-child { margin-bottom: 0; }
+  .msg.assistant .text h1,.msg.assistant .text h2,.msg.assistant .text h3 { font-size: 16px; margin: 8px 0 4px; }
   .input-area { background: white; padding: 16px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 8px 8px; display: flex; gap: 10px; }
   .input-area input { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 20px; font-size: 14px; outline: none; }
   .input-area input:focus { border-color: #003d7a; }
@@ -34,6 +42,7 @@
   .toast.ok { background:#e8f5e9; color:#2e7d32; border:1px solid #4caf50; }
   .toast.err { background:#fce4ec; color:#c62828; border:1px solid #e53935; }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 <div class="chat-container">
@@ -93,7 +102,7 @@ function newChat() {
   document.getElementById('messages').innerHTML = '';
   const input = document.getElementById('query');
   if (input) input.value = '';
-  addMsg('assistant', '你好！我是北师大校园问答助手，可以回答关于选课、违纪、生活服务、图书馆等问题。有什么需要帮助的吗？');
+  addMsg('assistant', '嗨～我是北师大的学姐志愿者，选课、违纪、生活服务、图书馆这些都可以问我哦！有什么需要帮忙的吗？😊');
 }
 
 async function send() {
@@ -159,7 +168,7 @@ async function send() {
 
             document.getElementById('messages').appendChild(msgDiv);
           }
-          textDiv.textContent = answer;
+          textDiv.innerHTML = marked.parse(answer);
           document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         } else if (data.type === 'sources') {
           sources = data.sources;
@@ -247,7 +256,7 @@ function showToast(msg, type) {
   if (type) setTimeout(() => toast.remove(), 3000);
 }
 
-addMsg('assistant', '你好！我是北师大校园问答助手，可以回答关于选课、违纪、生活服务、图书馆等问题。有什么需要帮助的吗？');
+addMsg('assistant', '嗨～我是北师大的学姐志愿者，选课、违纪、生活服务、图书馆这些都可以问我哦！有什么需要帮忙的吗？😊');
 </script>
 </body>
 </html>

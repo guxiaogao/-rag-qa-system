@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     dashscope_api_key: str = ""
 
     # ========== 模型配置 ==========
-    # 生成答案用的模型（qwen-plus 效果较好，qwen-turbo 更快更便宜）
-    chat_model: str = "qwen-plus"
+    # 生成答案用的模型（qwen-max 旗舰模型，表达自然细腻，推荐用于对回答风格有要求的场景）
+    chat_model: str = "qwen-max"
    
     # 向量化用的 embedding 模型
     embedding_model: str = "text-embedding-v3"
