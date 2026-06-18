@@ -28,7 +28,11 @@
   .loading { color: #999; font-style: italic; padding: 10px; }
   .sources { font-size: 12px; color: #888; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
   .sources a { color: #003d7a; cursor: default; }
-  .toolbar { display: flex; padding: 8px 16px; background: white; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; justify-content: flex-end; }
+  .toolbar { display: flex; padding: 8px 16px; background: white; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; justify-content: flex-end; gap: 8px; }
+  .toolbar button.upload-btn { padding:4px 12px; background:#e8f5e9; border:1px solid #4caf50; color:#2e7d32; border-radius:4px; cursor:pointer; font-size:13px; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:8px; font-size:14px; z-index:9999; box-shadow:0 2px 12px rgba(0,0,0,0.15); }
+  .toast.ok { background:#e8f5e9; color:#2e7d32; border:1px solid #4caf50; }
+  .toast.err { background:#fce4ec; color:#c62828; border:1px solid #e53935; }
 </style>
 </head>
 <body>
@@ -36,6 +40,7 @@
   <div class="header"><h1>🏫 北师大智能问答助手</h1></div>
   <div class="messages" id="messages"></div>
   <div class="toolbar">
+    <button class="upload-btn" onclick="uploadDoc()">📎 上传资料</button>
     <button onclick="newChat()" style="padding:4px 12px;background:#eee;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;">🔄 新对话</button>
   </div>
   <div class="input-area">
@@ -45,8 +50,10 @@
 </div>
 <script>
 const API = '/api/chat';
+const UPLOAD_API = '/api/documents/upload';
 const MAX_HISTORY = 6;  // 最近 3 轮对话（每轮 = 用户 + 助手）
 let conversationHistory = [];
+let _fileInput = null;
 
 function addMsg(role, text, sources) {
   const div = document.createElement('div');
@@ -185,6 +192,59 @@ async function send() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// ========== 文档上传 ==========
+
+function uploadDoc() {
+  if (!_fileInput) {
+    _fileInput = document.createElement('input');
+    _fileInput.type = 'file';
+    _fileInput.accept = '.txt,.md,.pdf';
+    _fileInput.onchange = doUpload;
+  }
+  _fileInput.value = '';
+  _fileInput.click();
+}
+
+async function doUpload() {
+  const file = _fileInput.files[0];
+  if (!file) return;
+
+  const maxMB = 10;
+  if (file.size > maxMB * 1024 * 1024) {
+    showToast(`文件过大（${(file.size / 1024 / 1024).toFixed(1)}MB），上限 ${maxMB}MB`, 'err');
+    return;
+  }
+
+  showToast(`⏳ 正在上传 ${file.name} …`, '');
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const resp = await fetch(UPLOAD_API, { method: 'POST', body: formData });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.detail || err.message || `服务器错误 (${resp.status})`);
+    }
+    const result = await resp.json();
+    showToast(`✅ ${result.filename} 已上传（${result.chunk_count} 个片段，即刻可用）`, 'ok');
+  } catch (e) {
+    showToast(`❌ 上传失败：${e.message}`, 'err');
+  }
+}
+
+function showToast(msg, type) {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+
+  const toast = document.createElement('div');
+  toast.className = 'toast' + (type ? ' ' + type : '');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+
+  if (type) setTimeout(() => toast.remove(), 3000);
 }
 
 addMsg('assistant', '你好！我是北师大校园问答助手，可以回答关于选课、违纪、生活服务、图书馆等问题。有什么需要帮助的吗？');
