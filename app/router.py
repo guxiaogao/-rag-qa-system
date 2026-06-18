@@ -24,13 +24,13 @@ from fastapi.responses import StreamingResponse
 from typing import List
 
 from app.schemas import (
-    ChatRequest, ChatResponse, Source,
+    ChatRequest, Source,
     SearchRequest, SearchResponse,
     DocumentInfo, DocumentListResponse,
     UploadResponse, DeleteResponse, HealthResponse,
 )
 from app.retriever import retrieve, get_all_documents, delete_document
-from app.generator import generate_answer, generate_answer_stream
+from app.generator import generate_answer_stream
 from app.document_loader import load_and_split
 from app.database import get_vector_store
 from app.config import settings, PROJECT_ROOT, limiter
@@ -113,82 +113,24 @@ async def health_check():
 @limiter.limit("60/minute")
 async def chat(body: ChatRequest, request: Request):
     """
-    核心问答接口。
+    核心问答接口，全部走流式 SSE 输出（打字机效果）。
 
-    支持两种模式：
-    - stream=false（默认）：同步返回完整 JSON 响应（向后兼容）
-    - stream=true：返回 SSE 事件流，逐 token 推送生成结果
-
-    流程：
-    1. 根据问题检索相关文档片段
-    2. 将问题 + 片段交给 LLM 生成回答
-    3. 返回回答和检索来源
+    管道：query rewrite → 向量检索 → rerank 重排序 → LLM 流式生成。
+    重排序和查询重写由服务端默认启用，Web 搜索 fallback 由相关性阈值自动决策。
 
     异常处理：
-    - 非流式：检索/生成失败 → 全局异常处理器 → JSON 错误响应
-    - 流式（检索阶段）：检索失败 → 全局异常处理器 → JSON 错误（SSE 尚未开始）
-    - 流式（生成阶段）：生成失败 → SSE 错误事件 + done（SSE 已开始，必须用 SSE 格式）
+    - 检索失败 → 全局异常处理器 → JSON 错误（SSE 尚未开始）
+    - 生成失败 → SSE error 事件 + done（SSE 已开始，走流式错误格式）
     """
-    # ========== 非流式模式 ==========
-    if not body.stream:
-        # 将 Pydantic 模型转为 dict，供 generator 使用
-        history_dicts = [m.model_dump() for m in body.conversation_history]
-
-        docs = await asyncio.to_thread(
-            retrieve,
-            query=body.query,
-            top_k=body.top_k,
-            use_mmr=body.use_mmr,
-            use_reranker=body.use_reranker,
-            use_rewrite=body.use_rewrite,
-        )
-
-        # ---- Web 搜索 fallback ----
-        docs, web_used = _resolve_docs(
-            query=body.query,
-            docs=docs,
-            top_k=body.top_k,
-        )
-
-        # 调用 LLM 生成回答
-        answer = await asyncio.to_thread(
-            generate_answer,
-            query=body.query,
-            docs=docs,
-            temperature=body.temperature,
-            conversation_history=history_dicts,
-        )
-
-        sources = [
-            Source(
-                content=doc.page_content,
-                filename=doc.metadata.get("filename", "未知"),
-                chunk_index=doc.metadata.get("chunk_index", 0),
-                score=doc.metadata.get("rerank_score", doc.metadata.get("score", 0.0)),
-                source_type=doc.metadata.get("source_type", "knowledge_base"),
-                source_url=doc.metadata.get("source_url", ""),
-            )
-            for doc in docs
-        ]
-        return ChatResponse(
-            answer=answer,
-            sources=sources,
-            llm_model=settings.chat_model,
-            web_search_used=web_used,
-        )
-
-    # ========== 流式模式 ==========
-    # 将 Pydantic 模型转为 dict，供 generator 使用
     history_dicts = [m.model_dump() for m in body.conversation_history]
 
-    # 检索在 SSE 开始前执行（同步函数送入线程池，避免阻塞事件循环）
     docs = await asyncio.to_thread(
         retrieve,
         query=body.query,
         top_k=body.top_k,
         use_mmr=body.use_mmr,
-        use_reranker=body.use_reranker,
-        use_rewrite=body.use_rewrite,
+        use_reranker=True,
+        use_rewrite=True,
     )
 
     # ---- Web 搜索 fallback ----
@@ -198,7 +140,6 @@ async def chat(body: ChatRequest, request: Request):
         top_k=body.top_k,
     )
 
-    # 预先格式化来源数据
     final_docs = docs
     sources_data = [
         Source(
@@ -220,13 +161,8 @@ async def chat(body: ChatRequest, request: Request):
         _temperature=body.temperature,
         _history=history_dicts,
     ):
-        """SSE 事件生成器：token → sources → web_search_used → done
-
-        使用默认参数显式绑定闭包变量（Python 在函数定义时求值默认参数），
-        防御未来重构时将本函数提取到 router 外导致延迟绑定的 bug。
-        """
+        """SSE 事件生成器：token → sources → web_search_used → done"""
         try:
-            # 逐 token 推送生成结果
             async for token in generate_answer_stream(
                 query=_query,
                 docs=_docs,
@@ -235,13 +171,8 @@ async def chat(body: ChatRequest, request: Request):
             ):
                 yield f"data: {json.dumps({'type': 'token', 'content': token}, ensure_ascii=False)}\n\n"
 
-            # 推送检索来源
             yield f"data: {json.dumps({'type': 'sources', 'sources': _sources}, ensure_ascii=False)}\n\n"
-
-            # 推送 Web 搜索标记
             yield f"data: {json.dumps({'type': 'meta', 'web_search_used': _web_used}, ensure_ascii=False)}\n\n"
-
-            # 结束标记
             yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         except GenerationException as e:
@@ -277,8 +208,8 @@ async def search(body: SearchRequest, request: Request):
         query=body.query,
         top_k=body.top_k,
         use_mmr=body.use_mmr,
-        use_reranker=body.use_reranker,
-        use_rewrite=body.use_rewrite,
+        use_reranker=True,
+        use_rewrite=True,
     )
     results = [
         Source(

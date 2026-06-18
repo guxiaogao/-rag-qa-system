@@ -50,7 +50,7 @@ check("2. 异常体系", step2)
 def step3():
     from app.schemas import ChatRequest
     r = ChatRequest(query="测试")
-    print(f"  query={r.query}, top_k={r.top_k}, stream={r.stream}")
+    print(f"  query={r.query}, top_k={r.top_k}")
     # 缺必填字段应报错
     try:
         ChatRequest()

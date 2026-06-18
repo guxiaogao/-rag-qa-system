@@ -28,19 +28,15 @@
   .loading { color: #999; font-style: italic; padding: 10px; }
   .sources { font-size: 12px; color: #888; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee; }
   .sources a { color: #003d7a; cursor: default; }
-  .options { display: flex; gap: 16px; padding: 8px 16px; background: white; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; font-size: 13px; }
-  .options label { display: flex; align-items: center; gap: 4px; cursor: pointer; color: #666; }
+  .toolbar { display: flex; padding: 8px 16px; background: white; border-left: 1px solid #e0e0e0; border-right: 1px solid #e0e0e0; justify-content: flex-end; }
 </style>
 </head>
 <body>
 <div class="chat-container">
   <div class="header"><h1>🏫 北师大智能问答助手</h1></div>
   <div class="messages" id="messages"></div>
-  <div class="options">
-    <label><input type="checkbox" id="opt_stream" checked> 流式输出</label>
-    <label><input type="checkbox" id="opt_rerank"> 重排序</label>
-    <label><input type="checkbox" id="opt_rewrite"> 查询优化</label>
-    <button onclick="newChat()" style="margin-left:auto;padding:4px 12px;background:#eee;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;">🔄 新对话</button>
+  <div class="toolbar">
+    <button onclick="newChat()" style="padding:4px 12px;background:#eee;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;">🔄 新对话</button>
   </div>
   <div class="input-area">
     <input id="query" placeholder="输入问题，比如：违纪怎么处理？" onkeydown="if(event.key==='Enter') send()"/>
@@ -108,17 +104,15 @@ async function send() {
   document.getElementById('messages').appendChild(loadingDiv);
   document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
 
-  const stream = document.getElementById('opt_stream').checked;
   const body = {
     query: q, top_k: 5,
-    use_reranker: document.getElementById('opt_rerank').checked,
-    use_rewrite: document.getElementById('opt_rewrite').checked,
-    stream: stream,
+    use_reranker: true,
+    use_rewrite: true,
+    stream: true,
     conversation_history: conversationHistory,
   };
 
   try {
-  if (stream) {
     // SSE 流式
     const resp = await fetch(API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
     if (!resp.ok) {
@@ -185,26 +179,6 @@ async function send() {
     if (conversationHistory.length > MAX_HISTORY) {
       conversationHistory = conversationHistory.slice(-MAX_HISTORY);
     }
-  } else {
-    // 非流式
-    const resp = await fetch(API, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-    if (!resp.ok) {
-      const err = await resp.json().catch(() => ({}));
-      throw new Error(err.message || `服务器错误 (${resp.status})`);
-    }
-    // 非流式回答返回，移除加载态
-    if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
-
-    const json = await resp.json();
-    const sources_info = json.sources?.length ? json.sources : null;
-    addMsg('assistant', json.answer, sources_info);
-    // 记录本轮对话历史
-    conversationHistory.push({role: 'user', content: q});
-    conversationHistory.push({role: 'assistant', content: json.answer});
-    if (conversationHistory.length > MAX_HISTORY) {
-      conversationHistory = conversationHistory.slice(-MAX_HISTORY);
-    }
-  }
   } catch (e) {
     if (loadingDiv) { loadingDiv.remove(); loadingDiv = null; }
     addMsg('assistant', `❌ ${e.message || '网络连接失败，请检查服务是否已启动'}`);
