@@ -111,7 +111,7 @@ async def health_check():
 # ========== 问答接口 ==========
 @router.post("/chat")
 @limiter.limit("60/minute")
-async def chat(request: ChatRequest, req: Request):
+async def chat(body: ChatRequest, request: Request):
     """
     核心问答接口。
 
@@ -130,32 +130,32 @@ async def chat(request: ChatRequest, req: Request):
     - 流式（生成阶段）：生成失败 → SSE 错误事件 + done（SSE 已开始，必须用 SSE 格式）
     """
     # ========== 非流式模式 ==========
-    if not request.stream:
+    if not body.stream:
         # 将 Pydantic 模型转为 dict，供 generator 使用
-        history_dicts = [m.model_dump() for m in request.conversation_history]
+        history_dicts = [m.model_dump() for m in body.conversation_history]
 
         docs = await asyncio.to_thread(
             retrieve,
-            query=request.query,
-            top_k=request.top_k,
-            use_mmr=request.use_mmr,
-            use_reranker=request.use_reranker,
-            use_rewrite=request.use_rewrite,
+            query=body.query,
+            top_k=body.top_k,
+            use_mmr=body.use_mmr,
+            use_reranker=body.use_reranker,
+            use_rewrite=body.use_rewrite,
         )
 
         # ---- Web 搜索 fallback ----
         docs, web_used = _resolve_docs(
-            query=request.query,
+            query=body.query,
             docs=docs,
-            top_k=request.top_k,
+            top_k=body.top_k,
         )
 
         # 调用 LLM 生成回答
         answer = await asyncio.to_thread(
             generate_answer,
-            query=request.query,
+            query=body.query,
             docs=docs,
-            temperature=request.temperature,
+            temperature=body.temperature,
             conversation_history=history_dicts,
         )
 
@@ -179,23 +179,23 @@ async def chat(request: ChatRequest, req: Request):
 
     # ========== 流式模式 ==========
     # 将 Pydantic 模型转为 dict，供 generator 使用
-    history_dicts = [m.model_dump() for m in request.conversation_history]
+    history_dicts = [m.model_dump() for m in body.conversation_history]
 
     # 检索在 SSE 开始前执行（同步函数送入线程池，避免阻塞事件循环）
     docs = await asyncio.to_thread(
         retrieve,
-        query=request.query,
-        top_k=request.top_k,
-        use_mmr=request.use_mmr,
-        use_reranker=request.use_reranker,
-        use_rewrite=request.use_rewrite,
+        query=body.query,
+        top_k=body.top_k,
+        use_mmr=body.use_mmr,
+        use_reranker=body.use_reranker,
+        use_rewrite=body.use_rewrite,
     )
 
     # ---- Web 搜索 fallback ----
     docs, web_used = _resolve_docs(
-        query=request.query,
+        query=body.query,
         docs=docs,
-        top_k=request.top_k,
+        top_k=body.top_k,
     )
 
     # 预先格式化来源数据
@@ -216,8 +216,8 @@ async def chat(request: ChatRequest, req: Request):
         _docs=final_docs,
         _sources=sources_data,
         _web_used=web_used,
-        _query=request.query,
-        _temperature=request.temperature,
+        _query=body.query,
+        _temperature=body.temperature,
         _history=history_dicts,
     ):
         """SSE 事件生成器：token → sources → web_search_used → done
@@ -266,7 +266,7 @@ async def chat(request: ChatRequest, req: Request):
 # ========== 仅检索接口（调试用）==========
 @router.post("/search", response_model=SearchResponse)
 @limiter.limit("120/minute")
-async def search(request: SearchRequest, req: Request):
+async def search(body: SearchRequest, request: Request):
     """
     仅检索不生成回答，用于调试和查看检索效果。
 
@@ -274,11 +274,11 @@ async def search(request: SearchRequest, req: Request):
     """
     docs = await asyncio.to_thread(
         retrieve,
-        query=request.query,
-        top_k=request.top_k,
-        use_mmr=request.use_mmr,
-        use_reranker=request.use_reranker,
-        use_rewrite=request.use_rewrite,
+        query=body.query,
+        top_k=body.top_k,
+        use_mmr=body.use_mmr,
+        use_reranker=body.use_reranker,
+        use_rewrite=body.use_rewrite,
     )
     results = [
         Source(
