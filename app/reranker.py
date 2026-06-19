@@ -1,6 +1,7 @@
 """
 ========== 重排序模块 ==========
 通过 DashScope Rerank API (qwen3-rerank) 对第一阶段检索结果进行精排。
+使用 OpenAI 兼容接口路径，与 Chat/Embedding API 保持一致。
 
 优势相较于本地 CrossEncoder：
 - 无需本地加载模型（省 2GB+ 内存，Docker 镜像瘦身 ~3GB）
@@ -9,7 +10,7 @@
 - 按 token 计费，成本极低（约 ¥0.0007 / 千 tokens）
 - 效果与 BAAI/bge-reranker-v2-m3 同级别
 
-API 文档：https://help.aliyun.com/document_detail/2712539.html
+API 文档：https://help.aliyun.com/zh/model-studio/reranker
 """
 
 import json
@@ -22,13 +23,15 @@ from langchain_core.documents import Document as LCDocument
 
 from app.config import settings
 
-# DashScope 原生 Rerank API 地址（注意：非 OpenAI 兼容接口路径）
-_RERANK_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank"
+# DashScope OpenAI 兼容 Rerank API 地址
+# qwen3-rerank 使用与 Chat/Embedding 一致的 /compatible-mode/v1 路径
+_RERANK_API_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1/rerank"
 
 # 重试参数
-_MAX_RETRIES = 3
-_RETRY_BACKOFF = 0.5  # 基础退避秒数（0.5 → 1.0 → 2.0）
+_MAX_RETRIES = 2
+_RETRY_BACKOFF = 0.5  # 基础退避秒数（0.5 → 1.0）
 _RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
+_API_TIMEOUT = 15  # 单次 API 调用超时秒数
 
 
 def _call_rerank_api(request_body: dict, headers: dict) -> dict:
@@ -47,7 +50,7 @@ def _call_rerank_api(request_body: dict, headers: dict) -> dict:
                 headers=headers,
                 method="POST",
             )
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=_API_TIMEOUT) as resp:
                 return json.loads(resp.read().decode("utf-8"))
 
         except urllib.error.HTTPError as e:
@@ -112,16 +115,12 @@ def rerank(
     model = model_name or settings.rerank_model
     doc_texts = [doc.page_content for doc in docs]
 
+    # OpenAI 兼容格式：query、documents、top_n 平铺在顶层
     request_body = {
         "model": model,
-        "input": {
-            "query": query,
-            "documents": doc_texts,
-        },
-        "parameters": {
-            "top_n": min(top_k, len(docs)),
-            "return_documents": False,
-        },
+        "query": query,
+        "documents": doc_texts,
+        "top_n": min(top_k, len(docs)),
     }
 
     headers = {
@@ -137,7 +136,8 @@ def rerank(
         error_msg = response_data.get("message", "未知错误")
         raise RuntimeError(f"Rerank API 错误: {error_msg}")
 
-    results = response_data.get("output", {}).get("results", [])
+    # OpenAI 兼容响应：results 直接在顶层，不再嵌套在 output 下
+    results = response_data.get("results", [])
 
     # 如果 API 返回空结果（异常情况），静默降级：
     # 直接返回原始文档列表（按相似度排序后的 top_k），保留已有上下文
