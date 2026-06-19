@@ -34,6 +34,7 @@ def get_cached_llm(model: str, temperature: float, *, _tag: str = "") -> ChatOpe
         api_key=settings.dashscope_api_key,
         base_url=settings.dashscope_base_url,
         temperature=temperature,
+        request_timeout=30.0,  # 防挂起：30s 超时
     )
 
 

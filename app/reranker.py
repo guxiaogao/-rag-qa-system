@@ -14,7 +14,6 @@ API 文档：https://help.aliyun.com/zh/model-studio/reranker
 """
 
 import json
-import time
 import urllib.request
 import urllib.error
 from typing import List
@@ -28,63 +27,40 @@ from app.config import settings
 _RERANK_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank"
 
 # 重试参数
-_MAX_RETRIES = 1
-_RETRY_BACKOFF = 0.5
-_RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})
-_API_TIMEOUT = 10  # 单次 API 调用超时秒数
+_MAX_RETRIES = 0           # 不重试：失败由 retriever.py 降级逻辑兜底
+_API_TIMEOUT = 3           # 3s 超时（正常 Rerank API 200-400ms 返回）
 
 
 def _call_rerank_api(request_body: dict, headers: dict) -> dict:
     """
-    调用 DashScope Rerank API，带指数退避重试。
+    调用 DashScope Rerank API。
 
-    仅对瞬时错误重试：HTTP 429（限流）、5xx（服务端故障）、
-    URLError（网络抖动）。4xx 客户端错误直接抛出，不重试。
+    无重试：失败直接抛出，由 retriever.py 的降级逻辑兜底
+    （用原始检索结果替代 Rerank 结果，用户无感知）。
     """
-    last_error = None
-    for attempt in range(_MAX_RETRIES):
-        try:
-            req = urllib.request.Request(
-                _RERANK_API_URL,
-                data=json.dumps(request_body).encode("utf-8"),
-                headers=headers,
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=_API_TIMEOUT) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+    try:
+        req = urllib.request.Request(
+            _RERANK_API_URL,
+            data=json.dumps(request_body).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=_API_TIMEOUT) as resp:
+            return json.loads(resp.read().decode("utf-8"))
 
-        except urllib.error.HTTPError as e:
-            # 统一读取错误响应体（流只能读一次，两个分支共享）
-            error_body = e.read().decode("utf-8", errors="replace") if e.fp else ""
-            if e.code in _RETRYABLE_STATUSES and attempt < _MAX_RETRIES - 1:
-                delay = _RETRY_BACKOFF * (2 ** attempt)
-                last_error = RuntimeError(
-                    f"Rerank API HTTP {e.code}（第 {attempt + 1} 次尝试，{delay:.1f}s 后重试）: {error_body[:200]}"
-                )
-                time.sleep(delay)
-                continue
-            raise RuntimeError(
-                f"Rerank API 返回 HTTP {e.code}: {error_body[:300]}"
-            )
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="replace") if e.fp else ""
+        raise RuntimeError(
+            f"Rerank API 返回 HTTP {e.code}: {error_body[:300]}"
+        )
 
-        except urllib.error.URLError as e:
-            if attempt < _MAX_RETRIES - 1:
-                delay = _RETRY_BACKOFF * (2 ** attempt)
-                last_error = RuntimeError(
-                    f"无法连接 Rerank API（第 {attempt + 1} 次尝试，{delay:.1f}s 后重试）: {e.reason}"
-                )
-                time.sleep(delay)
-                continue
-            raise RuntimeError(f"无法连接 Rerank API（已重试 {_MAX_RETRIES} 次）: {e.reason}")
+    except urllib.error.URLError as e:
+        raise RuntimeError(f"无法连接 Rerank API: {e.reason}")
 
-        except Exception as e:
-            raise RuntimeError(
-                f"Rerank API 调用失败 ({type(e).__name__}): {str(e)}"
-            )
-
-    # 理论上不会到达这里（最后一次循环要么 raise 要么 return），
-    # 但防御性保留以防静默吞掉异常
-    raise last_error or RuntimeError("Rerank API 调用失败：未知错误")
+    except Exception as e:
+        raise RuntimeError(
+            f"Rerank API 调用失败 ({type(e).__name__}): {str(e)}"
+        )
 
 
 def rerank(

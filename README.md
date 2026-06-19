@@ -88,8 +88,8 @@
 ```env
 # ========== 模型配置 ==========
 DASHSCOPE_API_KEY=sk-...
-CHAT_MODEL=qwen3.5-flash          # 答案生成模型（新一代轻量，推理强中文好）
-JUDGE_MODEL=qwen3.5-flash          # 评估/裁判模型（打分稳定）
+CHAT_MODEL=qwen-turbo             # 答案生成模型（低延迟，响应最快）
+JUDGE_MODEL=qwen-turbo             # 评估/裁判模型（低延迟，打分快）
 EMBEDDING_MODEL=text-embedding-v3  # 向量化模型
 
 # ========== 检索参数 ==========
@@ -105,7 +105,7 @@ RERANK_FETCH_K=20                 # 重排序前候选池大小
 # ========== Query Rewrite（服务端默认开启）==========
 REWRITE_ENABLED=true              # 建议开启，优化检索关键词
 REWRITE_ENABLED=true              # 建议开启，优化检索关键词
-REWRITE_MODEL=qwen3.5-flash
+REWRITE_MODEL=qwen-turbo
 
 # ========== Web 搜索 Fallback ==========
 WEB_SEARCH_ENABLED=true

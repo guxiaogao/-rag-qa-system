@@ -20,15 +20,15 @@ class Settings(BaseSettings):
     dashscope_api_key: str = ""
 
     # ========== 模型配置 ==========
-    # 生成答案用的模型（qwen3.5-flash 是 2026Q1 新一代轻量模型，推理强、中文好、极低价）
-    # 需要更强效果时可用 qwen3.5-plus 或 qwen3.7-max
-    chat_model: str = "qwen3.5-flash"
+    # 生成答案用的模型（qwen-turbo 低延迟，响应最快）
+    # 需要更强效果时可用 qwen3.5-flash 或 qwen3.5-plus
+    chat_model: str = "qwen-turbo"
 
     # 向量化用的 embedding 模型
     embedding_model: str = "text-embedding-v3"
 
-    # 评估时做裁判用的模型（qwen3.5-flash 打分稳定，取代已过时的 qwen-turbo）
-    judge_model: str = "qwen3.5-flash"
+    # 评估时做裁判用的模型（qwen-turbo 低延迟，打分快）
+    judge_model: str = "qwen-turbo"
 
     # ========== 检索参数 ==========
     # 文档分块大小（字符数）
@@ -49,14 +49,14 @@ class Settings(BaseSettings):
     rerank_model: str = "qwen3-rerank"
 
     # 重排序时第一阶段检索的候选数量（先取这么多，再用 Rerank API 精排取 top_k）
-    rerank_fetch_k: int = 20
+    rerank_fetch_k: int = 10
 
     # ========== Query Rewrite 参数 ==========
     # 是否启用查询重写（服务端总开关，关闭时即使 API 传 use_rewrite=true 也不生效）
     rewrite_enabled: bool = True
 
-    # 用于查询重写的模型（qwen3.5-flash 新一代轻量，关键词提取更准）
-    rewrite_model: str = "qwen3.5-flash"
+    # 用于查询重写的模型（qwen-turbo 低延迟，关键词提取足够）
+    rewrite_model: str = "qwen-turbo"
 
     # ========== LLM 生成参数 ==========
     # 生成温度（0-1），越高越随机、越低越确定
