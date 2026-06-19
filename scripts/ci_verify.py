@@ -54,7 +54,7 @@ def run_pr_mode():
     def step3():
         from app.schemas import ChatRequest
         r = ChatRequest(query="测试")
-        print(f"  query={r.query}, top_k={r.top_k}, stream={r.stream}")
+        print(f"  query={r.query}, top_k={r.top_k}, force_web_search={r.force_web_search}")
         try:
             ChatRequest()
             raise AssertionError("BUG: 缺少必填字段未报错!")
