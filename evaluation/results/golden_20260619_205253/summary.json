@@ -1,0 +1,18 @@
+{
+  "config": "golden_baseline",
+  "sample_count": 15,
+  "faithfulness": 0.8333,
+  "faithfulness_ci95": "[0.7533, 0.9067]",
+  "factual_faithfulness": 0.8611,
+  "hallucination": 0.5,
+  "answer_relevancy": 0.9533,
+  "context_precision": 0.64,
+  "context_recall": 0.84,
+  "mrr": 0.75,
+  "ndcg@5": 0.3788,
+  "hit_rate@5": 0.9333,
+  "map@5": 0.6848,
+  "latency_avg_s": 5.55,
+  "latency_p50_s": 5.41,
+  "latency_p95_s": 9.3
+}

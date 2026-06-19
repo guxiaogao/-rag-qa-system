@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Evaluation Report - golden_20260619_205253</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; color: #333; }
+  h1 { color: #1a3a6b; border-bottom: 3px solid #1a3a6b; padding-bottom: 10px; }
+  h2 { color: #2a5a9b; margin-top: 30px; }
+  .card { background: white; border-radius: 8px; padding: 20px; margin: 15px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #eee; }
+  th { background: #f0f4f8; font-weight: 600; }
+  tr:hover { background: #f8fafc; }
+  .good { color: #16a34a; font-weight: bold; }
+  .warn { color: #ea580c; font-weight: bold; }
+  .bad { color: #dc2626; font-weight: bold; }
+  .meta { color: #888; font-size: 0.9em; }
+  pre { background: #f8fafc; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 0.85em; }
+  .footer { margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; color: #999; font-size: 0.85em; }
+</style>
+</head>
+<body>
+<h1>RAG 系统评估报告</h1>
+<div class="meta">生成时间: 2026-06-19 22:20:55 | 实验ID: golden_20260619_205253 | 样本数: 15</div>
+
+<div class="card">
+<h2>配置</h2>
+<pre>{
+  "name": "golden_baseline",
+  "chunk_size": 500,
+  "chunk_overlap": 100,
+  "top_k": 5,
+  "use_mmr": false,
+  "use_reranker": false,
+  "use_rewrite": false,
+  "description": "Golden regression"
+}</pre>
+</div>
+
+<div class="card">
+<h2>汇总指标</h2>
+<table><tr><td>Faithfulness</td><td><strong>0.8333</strong> <span style="color:#888">CI95: [0.7533, 0.9067]</span></td></tr><tr><td>Factual Faithfulness</td><td><strong>0.8611</strong></td></tr><tr><td>Hallucination Score</td><td><strong>0.5</strong></td></tr><tr><td>Answer Relevancy</td><td><strong>0.9533</strong></td></tr><tr><td>Context Precision</td><td><strong>0.64</strong></td></tr><tr><td>Context Recall</td><td><strong>0.84</strong></td></tr><tr><td>MRR</td><td><strong>0.75</strong></td></tr><tr><td>NDCG@5</td><td><strong>0.3788</strong></td></tr><tr><td>Hit Rate@5</td><td><strong>0.9333</strong></td></tr><tr><td>MAP@5</td><td><strong>0.6848</strong></td></tr><tr><td>Avg Latency (s)</td><td><strong>5.55</strong></td></tr><tr><td>P50 Latency (s)</td><td><strong>5.41</strong></td></tr><tr><td>P95 Latency (s)</td><td><strong>9.3</strong></td></tr></table>
+</div>
+
+<div class="card">
+<h2>按领域分类</h2>
+<table><tr><th>Category</th><th>Count</th><th>Faithfulness</th><th>MRR</th><th>NDCG@5</th><th>Hit Rate</th></tr><tr><td>campus_life</td><td>1</td><td>1.000</td><td>0.333</td><td>0.164</td><td>1.000</td></tr><tr><td>course</td><td>2</td><td>0.800</td><td>1.000</td><td>0.407</td><td>1.000</td></tr><tr><td>discipline</td><td>4</td><td>0.725</td><td>0.750</td><td>0.429</td><td>0.750</td></tr><tr><td>exam</td><td>4</td><td>0.825</td><td>0.479</td><td>0.264</td><td>1.000</td></tr><tr><td>graduate</td><td>1</td><td>0.900</td><td>1.000</td><td>0.590</td><td>1.000</td></tr><tr><td>health</td><td>1</td><td>1.000</td><td>1.000</td><td>0.421</td><td>1.000</td></tr><tr><td>library</td><td>2</td><td>0.900</td><td>1.000</td><td>0.461</td><td>1.000</td></tr></table>
+<div class="meta">注: 仅当原始结果包含 category 字段时显示</div>
+</div>
+
+<div class="card">
+<h2>问答详情 (前20条)</h2>
+
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q1:</strong> 考试迟到了会有什么后果？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 考生应于开考前10分钟进入考场。如因特殊情况迟到，须向主考教师申明理由，经同意后方可进场考试。考试开始后迟到20分钟（含）以上者，取消该课程的本次考试资格，以旷考论处。...</span><br>
+  <strong>A:</strong> 哦，考试迟到的话要分情况看呢。如果你只是稍微晚了一点，比如在考试开始后20分钟内到，你可以向监考老师说明原因，如果老师同意，你还是可以参加考试的。但如果超过20分钟才到，那就不能参加这次考试了，会被视为旷考哦 😅
+
+所以最好提前一点到考场，这样比较保险啦！如果有特殊情况，记得及时和老师沟通哈 🙏😊...<br>
+  <span>Faith: <span class="good">1.0</span> | MRR: 0.25</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q2:</strong> 哪些行为会被认定为考试作弊？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 考试作弊行为包括：闭卷考试中携带与考试内容相关的材料或存储有相关资料的电子设备、使用相关设备搜索浏览考试内容、携带具有发送或接收信息功能的设备、抄袭或协助抄袭、抢夺窃取他人试卷、考试期间在考场外查阅交...</span><br>
+  <strong>A:</strong> 考试作弊的行为主要包括以下几种情况哦：
+
+1. **携带相关材料或设备**：在闭卷考试中，携带与考试内容相关的材料或者存储有相关内容的电子设备。
+2. **使用电子设备搜索信息**：在闭卷考试中，使用相关设备搜索、浏览与考试内容相关的网络信息。
+3. **携带通讯设备**：在闭卷考试中，携带具有发送或者接收信息功能的设备。
+4. **抄袭或协助抄袭**：抄袭或者协助他人抄袭试题答案或者与考试内容相...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q3:</strong> 考试严重作弊包括哪些行为？后果是什么？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 考试严重作弊行为包括：向场外发送传递试题信息、使用设备接收信息实施作弊、由他人代替考试或代替他人考试、组织团伙作弊、为作弊组织者提供试题信息或设备、偷盗试卷、向他人出售试题或答案牟利、第二次作弊等。严...</span><br>
+  <strong>A:</strong> 考试严重作弊的行为包括以下几种哦：
+
+1. **向场外发送、传递试题信息**：比如在考试过程中，通过手机或其他设备将试题内容传给外面的人。
+2. **使用相关设备接收信息实施作弊**：例如用手机或其他电子设备接收答案。
+3. **由他人代替参加考试**：找别人冒充自己去参加考试。
+4. **代替他人参加考试**：帮别人代考。
+5. **组织团伙作弊**：和一群人一起策划并实施作弊行为。
+6. **...<br>
+  <span>Faith: <span class="good">0.7</span> | MRR: 0.3333</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q4:</strong> 一名学生在考试中用手机拍照试卷发给场外同学求助，该学生同时触犯了哪些规定？应如何叠加处理？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 该学生同时触犯多条：在闭卷考试中携带具有发送信息功能的设备属于作弊（留校察看），同时考试过程中向场外发送试题信息属于严重作弊（开除学籍）。根据处分办法第七条，同时有两种以上需要给予处分的行为的，应当分...</span><br>
+  <strong>A:</strong> 这名学生在考试中用手机拍照试卷并发给场外同学求助，实际上触犯了多个规定哦。具体来说：
+
+1. **携带具有发送或者接收信息功能的设备**：学生带了手机进入考场，并且使用它来发送考试内容。
+2. **向考场外发送试题等信息**：学生通过手机把试卷内容发给了场外的同学。
+
+根据《学生手册》和相关处罚办法，这种行为属于作弊行为，具体的处理方式如下：
+
+- **留校察看处分**：如果情节不是特别严重，可能...<br>
+  <span>Faith: <span class="good">0.7</span> | MRR: 0.3333</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q5:</strong> 北师大学生违纪处分分为哪几种？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 学校对有违纪行为的学生，视情节轻重给予五种处分：警告、严重警告、记过、留校察看、开除学籍。...</span><br>
+  <strong>A:</strong> 北师大的学生违纪处分分为几种类型哦，主要包括：
+
+- **警告**
+- **严重警告**
+- **记过**
+- **留校察看**
+- **开除学籍**
+
+具体的处分会根据违纪行为的性质和严重程度来决定呢。如果有更具体的情况或者想了解详细的处分程序，可以再告诉我哦！😊✨...<br>
+  <span>Faith: <span class="good">0.7</span> | MRR: 0.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q6:</strong> 警告和留校察看的处分期分别是多久？从什么时候开始计算？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 警告和严重警告的处分期为6个月，记过和留校察看的处分期为12个月。处分期限从处分决定书送达之日起计算。在处分期内休学的，休学时间不计入处分期。...</span><br>
+  <strong>A:</strong> 警告的处分期是6个月，留校察看的处分期是12个月哦。处分期限从处分决定书送达之日起开始计算呢。如果有休学的情况，休学的时间是不计入处分期的。😊✨...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q7:</strong> 学生在宿舍留宿校外人员或异性会有什么处分？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 留宿校外人员的，视情节轻重给予警告至留校察看处分。留宿异性或者在异性宿舍留宿的，给予记过处分；情节严重的，给予留校察看处分；造成恶劣影响或者多次违反的，给予开除学籍处分。...</span><br>
+  <strong>A:</strong> 在宿舍留宿校外人员或异性是违反宿舍管理规定的哦。根据学生手册里的规定：
+
+- **留宿校外人员**：这种情况会根据情节轻重，给予警告至留校察看处分。
+- **留宿异性或在异性宿舍留宿**：这种行为会给予记过处分；如果情节严重，可能会给予留校察看处分；如果造成恶劣影响或者多次违反，甚至可能会被开除学籍呢。
+
+所以大家一定要注意宿舍的管理规定，不要随意留宿校外人员或异性哦！😊✨...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q8:</strong> 一学期累计旷课多少学时会受到什么处分？课外实践环节缺勤如何计算？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 一学期内累计旷课16-23学时给予警告处分；24-31学时给予严重警告处分；32-39学时给予记过处分；40学时以上给予留校察看处分。未经批准连续两周未参加学校教育教学计划规定活动的，按学籍管理有关规...</span><br>
+  <strong>A:</strong> 嗨，你好呀！关于旷课的处分规定，学生手册里提到：
+
+- 一学期内累计旷课 **16学时以上、23学时以下** 的，会受到 **警告处分**；
+- 一学期内累计旷课 **24学时以上、31学时以下** 的，会受到 **严重警告处分**；
+- 一学期内累计旷课 **32学时以上、39学时以下** 的，会受到 **记过处分**；
+- 一学期内累计旷课 **40学时以上** 的，会受到 **留校察看处分*...<br>
+  <span>Faith: <span class="warn">0.4</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q9:</strong> 学生选课分为哪几轮？每轮分别做什么？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 选课分三轮：第一轮正选在学期中（如5月底6月初）按优先级抽签确定初步课表；第二轮退改补选时间跨度长（6月中至7月初、8月底至9月初），可自由调整；开学第一周为试听与退改补选的最后期限，周五前可退补，逾...</span><br>
+  <strong>A:</strong> 选课一般分为几轮哦，每一轮都有不同的任务呢！让我来给你详细说说：
+
+1. **第一轮：正选**  
+   这个阶段主要是在学期中进行的（比如5月底或6月初），主要是按优先级抽签来确定初步的课表。这轮选课是基础，大家可以根据自己的需求和兴趣选择课程。
+
+2. **第二轮：退/改/补选**  
+   这一轮非常关键，时间跨度也比较长（比如从6月中到7月初，以及8月底到9月初）。在这期间，你可以自由调整...<br>
+  <span>Faith: <span class="good">0.7</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q10:</strong> 北师大本科生毕业需要满足哪些条件？最长可以读几年？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 本科基本学制为4年，最长修读年限（含休学）为6年。本科生需要完成教学计划规定的全部课程和学分，通过毕业论文（设计）答辩方可毕业。具体学分要求因专业而异，每学期修读学分通常建议18-28学分。...</span><br>
+  <strong>A:</strong> 你好呀！北师大本科生毕业需要满足以下几个条件哦：
+
+1. **学分要求**：要修满所在专业培养方案规定的总学分，达到毕业要求。
+2. **成绩合格**：所有课程的成绩都要合格。
+3. **政治表现良好**：拥护中国共产党的领导，拥护社会主义制度。
+4. **掌握专业知识和技能**：较好地掌握本专业的基础理论、专门知识和基本技能。
+5. **通过外语考试**：通过北京师范大学的学士学位外语考试，或经...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q11:</strong> 如何开通图书馆的借阅权限？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 新生可以凭校园卡进入图书馆阅览。借书需要先开通借阅权限：关注并进入图书馆微信公众号，点击我的图书馆绑定账号（账号为学号，初始密码为LIB@身份证后8位），按指引完善资料、阅读规则，通过邮箱点击链接确认...</span><br>
+  <strong>A:</strong> 开通图书馆的借阅权限很简单哦，步骤如下：
+
+1. **关注并进入图书馆微信公众号**：搜索并关注“北京师范大学珠海校区图书馆”公众号。
+2. **绑定个人账号**：点击公众号菜单栏中的“我的” -> “我的图书馆”，然后输入你的学号作为账号，初始密码是 `LIB@身份证后8位`。
+3. **完善资料和阅读规则**：按照指引完善个人信息，并阅读相关的使用规则。
+4. **邮箱确认**：通过你绑定的常...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q12:</strong> 本科生借书可以借多久？逾期了怎么办？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 本科生借阅期限为30天，可以续借一次，单次续借最长30天。逾期使用费为0.1元/册/天。图书逾期会暂停借阅、预约、续借权限，并收取逾期使用费。可借范围为普通中外文图书，特藏文献、工具书、期刊等仅供室内...</span><br>
+  <strong>A:</strong> 本科生借书的期限是30天哦，到期后还可以续借一次，续借也是30天。如果逾期了，图书馆会暂停你的借阅、预约和续借权限，并且会收取逾期使用费，每册每天0.1元。记得按时还书呢，不然会影响你下次借书的～😊
+
+如果有书逾期了，你可以通过图书馆主页登录个人账户，在“我的借阅证”里支付逾期款，也可以在自助缴费机上刷卡缴费。别忘了检查一下自己的账户，确认图书已经成功归还啦！✨...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q13:</strong> 宿舍的门禁时间是几点？进出宿舍需要什么？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 周一至周四及周日门禁时间为23:30，周五和周六门禁时间为23:50。进出宿舍须刷校园卡。部分宿舍楼周日至周四23:30会断网，24:00断电（空调和厕所灯除外）。...</span><br>
+  <strong>A:</strong> 宿舍的门禁时间是这样的哦：
+
+- 开门时间：早上 6:00
+- 关门时间：晚上 24:00
+
+如果你在晚上 24:00 之后回宿舍，就算作晚归了，需要到值班台登记，并写明晚归的理由才能回到宿舍呢😊
+
+进出宿舍楼时，记得要带好你的校园卡，因为宿舍管理人员会核实出入人员的身份。非本楼住宿人员一般是不能进入宿舍楼的，如果有特殊情况，比如家长、老师或同学需要进入，你需要向楼长说明情况，并经同意后登记才能进...<br>
+  <span>Faith: <span class="good">1.0</span> | MRR: 0.3333</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q14:</strong> 校卫生服务中心在哪里？门诊时间是什么时候？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 校卫生服务中心位于海华苑红楼（海华苑1栋旁，保卫处旁，校内会同南路靠近燕华苑1栋东侧）。门诊时间：周一至周五08:00-11:30、14:00-17:30；夜间22:00-次日08:00为急诊时段；周...</span><br>
+  <strong>A:</strong> 校卫生服务中心在海华苑红楼哦，就在海华苑1栋旁边，保卫处旁边，具体位置在校内会同南路靠近燕华苑1栋东侧呢 🏥
+
+门诊时间是这样的：
+- 周一至周五：08:00 - 11:30 和 14:00 - 17:30
+- 夜间急诊：22:00 - 次日 08:00
+- 周六日及节假日：急诊24小时值班
+
+如果有紧急情况，可以拨打这些电话：
+- 校门诊急诊/咨询：0756-3621120、0756-36831...<br>
+  <span>Faith: <span class="good">1.0</span> | MRR: 1.0</span>
+</div>
+<div style="border:1px solid #e5e7eb; border-radius:6px; padding:12px; margin:8px 0;">
+  <strong>Q15:</strong> 研究生请假需要谁批准？不同天数的审批流程有什么区别？<br>
+  <span style="color:#888; font-size:0.9em;">Gold: 研究生因伤病请假：3日以内由导师或研究生班主任或辅导员批准；3日至14日由所在培养单位主管领导批准；14日以上需填写研究生请假申请审批表并附医院证明，报教务部批准。请事假：2日以内由导师或班主任或辅导...</span><br>
+  <strong>A:</strong> 研究生请假的审批流程根据请假天数有所不同哦，具体如下：
+
+- **2天以内**：由导师或研究生班主任、辅导员批准。
+- **2天至7天**：由所在培养单位主管领导批准。
+- **7天以上**：需要填写《北京师范大学研究生请假申请审批表》，并由所在培养单位主管领导签署意见后，再报教务部批准。
+
+记得请假的时候要亲自办理手续，假期结束也要按时返校，并到所在培养单位的研究生教务办公室办理销假手续哦。如果...<br>
+  <span>Faith: <span class="good">0.9</span> | MRR: 1.0</span>
+</div>
+</div>
+
+<div class="footer">
+  <p>RAG Evaluation System v2.0 | Generated by evaluation/reporter.py</p>
+  <p>Project root: E:\code\vscode\rag项目</p>
+</div>
+</body>
+</html>

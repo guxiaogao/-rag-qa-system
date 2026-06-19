@@ -1,0 +1,10 @@
+{
+  "name": "golden_baseline",
+  "chunk_size": 500,
+  "chunk_overlap": 100,
+  "top_k": 5,
+  "use_mmr": false,
+  "use_reranker": false,
+  "use_rewrite": false,
+  "description": "Golden regression"
+}

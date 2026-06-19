@@ -1,0 +1,82 @@
+{
+  "report_generated": "2026-06-19 22:20:44",
+  "test_dataset": "test_qa_golden.json (15 questions)",
+  "config": "baseline (dense retrieval only, top_k=5, no rerank, no rewrite)",
+  "metrics": {
+    "faithfulness": {
+      "value": 0.91,
+      "ci95": [
+        0.86,
+        0.95
+      ],
+      "rating": "good",
+      "explanation": "LLM answers are 91% faithful to retrieved context. Minimal hallucination."
+    },
+    "factual_faithfulness": {
+      "value": 0.81,
+      "ci95": null,
+      "rating": "attention",
+      "explanation": "81% of key facts correctly stated and traceable. 10-point gap vs holistic Faithfulness indicates coarse scoring overestimates quality — details are being missed."
+    },
+    "answer_relevancy": {
+      "value": 0.97,
+      "ci95": null,
+      "rating": "excellent",
+      "explanation": "Nearly perfect relevance. RAG almost never outputs off-topic answers."
+    },
+    "mrr": {
+      "value": 0.75,
+      "ci95": null,
+      "rating": "good",
+      "explanation": "Mean Reciprocal Rank. First relevant chunk appears at ~rank 1.3 on average. Good first-hit capability."
+    },
+    "ndcg_at_5": {
+      "value": 0.38,
+      "ci95": null,
+      "rating": "weak",
+      "explanation": "NDCG@5 is only 38% of ideal ranking. Strong hit rate (0.93) but POOR ranking quality — this is the main retrieval weakness. Rerank is expected to improve this significantly."
+    },
+    "hit_rate_at_5": {
+      "value": 0.93,
+      "ci95": null,
+      "rating": "excellent",
+      "explanation": "93% of questions have at least 1 relevant chunk in top-5. Knowledge base coverage is good."
+    },
+    "avg_latency": {
+      "value": "5.0s",
+      "rating": "acceptable",
+      "explanation": "Average end-to-end eval pipeline latency. Note: 6 Judge LLM calls run sequentially, inflating eval time. Production Q&A (no eval) is ~3-4s."
+    },
+    "p95_latency": {
+      "value": "9.7s",
+      "rating": "high",
+      "explanation": "Tail latency 2x the average due to sequential Judge calls. Fix: parallelize eval LLM invocations via asyncio.gather."
+    }
+  },
+  "four_quadrant_assessment": {
+    "retrieval_coverage": "Hit Rate 0.93 — Excellent coverage",
+    "retrieval_precision": "MRR 0.75 Good / NDCG 0.38 Weak — Ranking quality is the bottleneck",
+    "generation_faithfulness": "Faithfulness 0.91 Good / Factual 0.81 Needs attention — 19% of key details missed",
+    "generation_relevance": "Relevancy 0.97 — Excellent, almost never off-topic",
+    "system_efficiency": "Avg 5.0s — Sequential eval inflates; production Q&A ~3-4s"
+  },
+  "strengths": [
+    "Broad retrieval coverage (93% hit rate)",
+    "Strong hallucination suppression (91% faithfulness)",
+    "Nearly perfect answer relevance (97%)",
+    "Good first-hit retrieval (MRR 0.75)"
+  ],
+  "weaknesses": [
+    "Poor ranking quality (NDCG@5 only 0.38) — Enable Rerank",
+    "19% key fact omission — Increase top_k or add query rewrite",
+    "Tail latency inflated by sequential eval calls — Parallelize Judge LLM",
+    "Holistic Faithfulness overestimates quality by 0.10 vs Factual checking"
+  ],
+  "recommended_actions": [
+    "Run full 4-config benchmark to quantify Rerank/Rewrite improvement",
+    "Use Factual Faithfulness as primary generation metric (more honest)",
+    "Parallelize 6 Judge LLM calls with asyncio.gather",
+    "Investigate the 1 question with Hit Rate=0 (discipline_001)",
+    "Add golden regression to CI pipeline"
+  ]
+}
