@@ -1,6 +1,6 @@
 """
 ========== 重排序模块 ==========
-通过 DashScope Rerank API (gte-rerank) 对第一阶段检索结果进行精排。
+通过 DashScope Rerank API (qwen3-rerank) 对第一阶段检索结果进行精排。
 
 优势相较于本地 CrossEncoder：
 - 无需本地加载模型（省 2GB+ 内存，Docker 镜像瘦身 ~3GB）
@@ -97,7 +97,7 @@ def rerank(
         query:      用户问题
         docs:       第一阶段检索的候选文档列表
         top_k:      最终返回的文档数量
-        model_name: 可选，覆盖默认模型（默认使用 settings.rerank_model 即 gte-rerank）
+        model_name: 可选，覆盖默认模型（默认使用 settings.rerank_model 即 qwen3-rerank）
 
     返回：
         重排序后的文档列表（长度 ≤ top_k），每个 doc.metadata 中含有 "rerank_score"

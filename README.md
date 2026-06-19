@@ -41,7 +41,7 @@
 | **向量相似度检索** | HNSW 索引 + cosine 距离 | 默认 |
 | **MMR 检索** | 最大边际相关性，平衡相关性和多样性 | API 可选 |
 | **Query Rewrite** | LLM 将口语化查询重写为关键词 | 服务端默认开启 (`REWRITE_ENABLED=true`) |
-| **Rerank API 重排序** | DashScope gte-rerank 精排候选 | 服务端默认开启 (`RERANK_ENABLED=true`) |
+| **Rerank API 重排序** | DashScope qwen3-rerank 精排候选 | 服务端默认开启 (`RERANK_ENABLED=true`) |
 
 ### 生成增强
 
@@ -88,9 +88,9 @@
 ```env
 # ========== 模型配置 ==========
 DASHSCOPE_API_KEY=sk-...
-CHAT_MODEL=qwen-max               # 答案生成模型（旗舰模型，表达更自然）
-JUDGE_MODEL=qwen-turbo            # 评估/重写/裁判模型 (便宜)
-EMBEDDING_MODEL=text-embedding-v2 # 向量化模型
+CHAT_MODEL=qwen3.5-flash          # 答案生成模型（新一代轻量，推理强中文好）
+JUDGE_MODEL=qwen3.5-flash          # 评估/裁判模型（打分稳定）
+EMBEDDING_MODEL=text-embedding-v3  # 向量化模型
 
 # ========== 检索参数 ==========
 TOP_K=5                           # 默认返回片段数
@@ -99,12 +99,13 @@ CHUNK_OVERLAP=100                 # 分块之间重叠量
 
 # ========== 重排序（服务端默认开启，走 API，极低成本）==========
 RERANK_ENABLED=true              # 建议开启，极低成本精排
-RERANK_MODEL=gte-rerank
+RERANK_MODEL=qwen3-rerank
 RERANK_FETCH_K=20                 # 重排序前候选池大小
 
 # ========== Query Rewrite（服务端默认开启）==========
 REWRITE_ENABLED=true              # 建议开启，优化检索关键词
-REWRITE_MODEL=qwen-turbo
+REWRITE_ENABLED=true              # 建议开启，优化检索关键词
+REWRITE_MODEL=qwen3.5-flash
 
 # ========== Web 搜索 Fallback ==========
 WEB_SEARCH_ENABLED=true
@@ -137,7 +138,7 @@ WEB_SEARCH_NUM_RESULTS=5
 | LLM & Embedding | **DashScope 通义千问** | OpenAI 兼容接口, 中文效果优秀 |
 | 向量数据库 | **ChromaDB** | HNSW 索引, cosine 距离, 持久化存储 |
 | LLM 编排 | **LangChain** | Document / Prompt 抽象, Chroma 集成 |
-| 重排序 | **DashScope gte-rerank API** | 云端重排序, 按 token 计费, 无需本地 GPU |
+| 重排序 | **DashScope qwen3-rerank API** | 云端重排序, 按 token 计费, 无需本地 GPU |
 | PDF 解析 | **pypdf** | 纯 Python PDF 文本提取 |
 | Web 搜索 | **duckduckgo-search** | 免 API Key, 零配置 fallback |
 | 评估 | **LLM-as-Judge** | 4 指标自评估, Pandas 对比分析 |
@@ -169,7 +170,7 @@ python scripts/init_db.py
 
 1. **模块解耦** — retriever / generator / reranker 各自独立，替换任一模块不影响其余
 2. **优雅降级** — Query Rewrite 失败 → 用原始查询；Web Search 失败 → 继续用 KB 结果；Faithfulness Check 失败 → 保守返回 1.0
-3. **API 优先** — 重排序走 DashScope gte-rerank API，无需本地模型，彻底消除 PyTorch/PyArrow DLL 冲突，Docker 镜像体积大幅缩减
+3. **API 优先** — 重排序走 DashScope qwen3-rerank API，无需本地模型，彻底消除 PyTorch/PyArrow DLL 冲突，Docker 镜像体积大幅缩减
 4. **纯 Python 分块** — 自主实现 `RecursiveTextSplitter`，避免 `langchain_text_splitters` 在部分 Windows 环境的 Rust tiktoken segfault 问题
 5. **智能管道** — 重排序、查询重写、流式输出均由服务端默认开启，Web 搜索默认按相关性阈值自动决策，前端提供"联网"开关供用户主动触发
 6. **SSE 流式** — 全部请求走 SSE 事件流，逐 token 推送，检索/生成/错误的全生命周期在 SSE 通道内闭环

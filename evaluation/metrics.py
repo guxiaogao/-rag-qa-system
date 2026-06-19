@@ -21,7 +21,7 @@ from app.utils import get_cached_llm
 def get_judge_llm(temperature: float = 0.0):
     """
     获取（缓存）裁判 LLM 实例。
-    用 qwen-turbo（便宜）做评估，temperature=0 保证结果稳定。
+    用 qwen3.5-flash（新一代轻量）做评估，temperature=0 保证结果稳定。
     同一 (model, temperature) 组合全局复用，避免重复创建 HTTP 客户端。
     """
     return get_cached_llm(model=settings.judge_model, temperature=temperature)

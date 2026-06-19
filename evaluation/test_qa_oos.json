@@ -1,0 +1,98 @@
+[
+  {
+    "question_id": "oos_001",
+    "question": "北京师范大学2025年高考录取分数线是多少？",
+    "question_type": "factoid",
+    "difficulty": "hard",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是高考录取分数线，属于每年变化的招生数据，不在当前知识库的覆盖范围内。知识库中包含的是学校概况、学生管理规定、考场纪律、违纪处分办法等信息。建议访问北京师范大学招生官网或各省教育考试院网站查询最新录取分数线。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "北师大2025年录去分数线是多少？",
+      "spoken": "今年北师大多少分能上"
+    },
+    "expected_refusal": true
+  },
+  {
+    "question_id": "oos_002",
+    "question": "北京师范大学研究生入学考试科目有哪些？如何备考？",
+    "question_type": "procedural",
+    "difficulty": "hard",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是研究生入学考试的具体科目和备考方法，属于招生考试范畴，不在当前知识库覆盖范围内。知识库主要涵盖学生管理规定、在校学习生活服务等内容。建议访问北京师范大学研究生招生官网查询招生简章和考试大纲。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "北师大考研靠什么科目？",
+      "spoken": "想考北师大研究生要准备啥"
+    },
+    "expected_refusal": true
+  },
+  {
+    "question_id": "oos_003",
+    "question": "珠海校区附近有什么好吃的外卖推荐？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是校外外卖推荐，知识库中只包含了校内食堂的餐饮信息（学三食堂、学一食堂、湖畔餐厅、龙园餐厅、阿龙餐厅），不涵盖校外外卖商家。建议通过外卖平台（如美团、饿了么）搜索附近商家并查看评价。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "学校附近有社么好吃的外卖？",
+      "spoken": "北师珠附近点啥外卖好吃"
+    },
+    "expected_refusal": true
+  },
+  {
+    "question_id": "oos_004",
+    "question": "北京师范大学计算机科学与技术专业的课程表是怎样的？",
+    "question_type": "factoid",
+    "difficulty": "hard",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是特定专业的课程表，属于教学计划中详细排课信息，不在当前知识库覆盖范围内。知识库中包含选课流程和学分要求等通用信息，但不包括各专业的具体课程安排。建议登录教务系统查看个人课表或咨询所在院系教务办公室。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "计算机专业的课程表是森么？",
+      "spoken": "计算机系都上啥课啊"
+    },
+    "expected_refusal": true
+  },
+  {
+    "question_id": "oos_005",
+    "question": "2026年春季学期什么时候放暑假？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是具体学期的校历安排，属于每年更新的时效性信息，不在当前知识库覆盖范围内。知识库中包含的是学校管理和规章制度等相对稳定的信息。建议查看教务部官网发布的最新校历或关注北京师范大学珠海校区教务部微信公众号获取。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "2026年春寄学期什么时候暑假？",
+      "spoken": "明年暑假啥时候放啊"
+    },
+    "expected_refusal": true
+  },
+  {
+    "question_id": "oos_006",
+    "question": "北京师范大学心理学专业在全国排名第几？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "out_of_scope",
+    "golden_answer": "该问题询问的是学科排名，属于第三方评估数据，不在当前知识库覆盖范围内。知识库中包含学校概况中的学科建设信息（如双一流学科、重点学科数量等），但不包含具体排名数据。建议参考教育部学科评估结果或第三方排名机构（如QS、软科）的最新数据。",
+    "golden_context_must": [],
+    "golden_context_nice": [],
+    "key_facts": [],
+    "perturbations": {
+      "typo": "心理学专业排名地几？",
+      "spoken": "北师大心理学厉害吗排第几"
+    },
+    "expected_refusal": true
+  }
+]

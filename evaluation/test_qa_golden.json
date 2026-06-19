@@ -1,0 +1,451 @@
+[
+  {
+    "question_id": "exam_001",
+    "question": "考试迟到了会有什么后果？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "exam",
+    "golden_answer": "考生应于开考前10分钟进入考场。如因特殊情况迟到，须向主考教师申明理由，经同意后方可进场考试。考试开始后迟到20分钟（含）以上者，取消该课程的本次考试资格，以旷考论处。",
+    "golden_context_must": [
+      "迟到",
+      "20分钟",
+      "取消资格",
+      "主考教师",
+      "10分钟"
+    ],
+    "golden_context_nice": [
+      "特殊情况",
+      "旷考论处"
+    ],
+    "key_facts": [
+      "提前10分钟进入考场",
+      "特殊情况迟到须向主考教师申明理由经同意方可进场",
+      "迟到20分钟以上取消考试资格以旷考论处"
+    ],
+    "perturbations": {
+      "typo": "考试迟道了会有什么后过？",
+      "spoken": "我要是考试来晚了咋整啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "exam_005",
+    "question": "哪些行为会被认定为考试作弊？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "exam",
+    "golden_answer": "考试作弊行为包括：闭卷考试中携带与考试内容相关的材料或存储有相关资料的电子设备、使用相关设备搜索浏览考试内容、携带具有发送或接收信息功能的设备、抄袭或协助抄袭、抢夺窃取他人试卷、考试期间在考场外查阅交流考试内容、故意销毁试卷、传接物品或交换试卷等。在线闭卷考试中搜索浏览与考试内容相关的电子资料或网页也属于作弊。",
+    "golden_context_must": [
+      "作弊",
+      "抄袭",
+      "携带",
+      "电子设备",
+      "交换试卷"
+    ],
+    "golden_context_nice": [
+      "搜索",
+      "发送接收",
+      "销毁试卷",
+      "在线考试"
+    ],
+    "key_facts": [
+      "携带与考试内容相关的材料或电子设备属于作弊",
+      "抄袭或协助抄袭属于作弊",
+      "传接物品或交换试卷属于作弊",
+      "使用设备搜索浏览考试内容属于作弊"
+    ],
+    "perturbations": {
+      "typo": "那鞋行为会被认定为考试做弊？",
+      "spoken": "考试中哪些事算是作弊啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "exam_007",
+    "question": "考试严重作弊包括哪些行为？后果是什么？",
+    "question_type": "procedural",
+    "difficulty": "medium",
+    "category": "exam",
+    "golden_answer": "考试严重作弊行为包括：向场外发送传递试题信息、使用设备接收信息实施作弊、由他人代替考试或代替他人考试、组织团伙作弊、为作弊组织者提供试题信息或设备、偷盗试卷、向他人出售试题或答案牟利、第二次作弊等。严重作弊者给予开除学籍处分。",
+    "golden_context_must": [
+      "严重作弊",
+      "开除学籍",
+      "替考",
+      "组织作弊",
+      "偷盗试卷"
+    ],
+    "golden_context_nice": [
+      "发送试题",
+      "出售答案",
+      "第二次作弊"
+    ],
+    "key_facts": [
+      "替考和组织作弊属于严重作弊",
+      "偷盗试卷属于严重作弊",
+      "向他人出售试题或答案牟利属于严重作弊",
+      "严重作弊给予开除学籍处分"
+    ],
+    "perturbations": {
+      "typo": "严重做弊有哪些？后过是啥？",
+      "spoken": "作弊严重的那些行为会怎么处理啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "exam_011",
+    "question": "一名学生在考试中用手机拍照试卷发给场外同学求助，该学生同时触犯了哪些规定？应如何叠加处理？",
+    "question_type": "synthesis",
+    "difficulty": "hard",
+    "category": "exam",
+    "golden_answer": "该学生同时触犯多条：在闭卷考试中携带具有发送信息功能的设备属于作弊（留校察看），同时考试过程中向场外发送试题信息属于严重作弊（开除学籍）。根据处分办法第七条，同时有两种以上需要给予处分的行为的，应当分别确定相应处分，存在数个不同种类处分的，合并为其中最重的处分种类，同时延长处分期。最终应按严重作弊处理，给予开除学籍处分。",
+    "golden_context_must": [
+      "发送试题",
+      "严重作弊",
+      "开除学籍",
+      "合并处分"
+    ],
+    "golden_context_nice": [
+      "第七条",
+      "分别确定",
+      "延长处分期"
+    ],
+    "key_facts": [
+      "携带收发信息设备属于作弊",
+      "向场外发送试题信息属于严重作弊",
+      "数种不同处分合并为最重种类",
+      "严重作弊给予开除学籍处分"
+    ],
+    "perturbations": {
+      "typo": "用手机拍卷子给同学属于什么行为？",
+      "spoken": "考试拍照发给别人会被怎么处理"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "discipline_001",
+    "question": "北师大学生违纪处分分为哪几种？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "学校对有违纪行为的学生，视情节轻重给予五种处分：警告、严重警告、记过、留校察看、开除学籍。",
+    "golden_context_must": [
+      "警告",
+      "严重警告",
+      "记过",
+      "留校察看",
+      "开除学籍"
+    ],
+    "golden_context_nice": [
+      "五种",
+      "情节轻重"
+    ],
+    "key_facts": [
+      "五种处分从轻到重依次为警告严重警告记过留校察看开除学籍"
+    ],
+    "perturbations": {
+      "typo": "违纪处份有几种？",
+      "spoken": "学生违纪会被怎么罚啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "discipline_002",
+    "question": "警告和留校察看的处分期分别是多久？从什么时候开始计算？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "警告和严重警告的处分期为6个月，记过和留校察看的处分期为12个月。处分期限从处分决定书送达之日起计算。在处分期内休学的，休学时间不计入处分期。",
+    "golden_context_must": [
+      "6个月",
+      "12个月",
+      "处分期",
+      "送达之日"
+    ],
+    "golden_context_nice": [
+      "休学",
+      "不计入"
+    ],
+    "key_facts": [
+      "警告和严重警告处分期为6个月",
+      "记过和留校察看处分期为12个月",
+      "处分期限从处分决定书送达之日起计算"
+    ],
+    "perturbations": {
+      "typo": "警告处份期多长？",
+      "spoken": "记个大过要背多久啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "discipline_005",
+    "question": "学生在宿舍留宿校外人员或异性会有什么处分？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "discipline",
+    "golden_answer": "留宿校外人员的，视情节轻重给予警告至留校察看处分。留宿异性或者在异性宿舍留宿的，给予记过处分；情节严重的，给予留校察看处分；造成恶劣影响或者多次违反的，给予开除学籍处分。",
+    "golden_context_must": [
+      "留宿",
+      "校外人员",
+      "异性",
+      "记过",
+      "开除学籍"
+    ],
+    "golden_context_nice": [
+      "出租床位",
+      "调换"
+    ],
+    "key_facts": [
+      "留宿校外人员给予警告至留校察看处分",
+      "留宿异性给予记过处分",
+      "情节严重或多次违反的可开除学籍"
+    ],
+    "perturbations": {
+      "typo": "宿舍留宿外面的人会被处份吗？",
+      "spoken": "能让对象住宿舍不"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "discipline_010",
+    "question": "一学期累计旷课多少学时会受到什么处分？课外实践环节缺勤如何计算？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "discipline",
+    "golden_answer": "一学期内累计旷课16-23学时给予警告处分；24-31学时给予严重警告处分；32-39学时给予记过处分；40学时以上给予留校察看处分。未经批准连续两周未参加学校教育教学计划规定活动的，按学籍管理有关规定处理。擅自缺席专业实习、毕业论文（设计）等课外实践环节，一天以旷课6学时计。",
+    "golden_context_must": [
+      "16学时",
+      "警告",
+      "40学时",
+      "留校察看",
+      "6学时"
+    ],
+    "golden_context_nice": [
+      "实习",
+      "毕业论文",
+      "连续两周"
+    ],
+    "key_facts": [
+      "旷课16-23学时警告",
+      "旷课32-39学时记过",
+      "旷课40学时以上留校察看",
+      "课外实践一天按6学时计算"
+    ],
+    "perturbations": {
+      "typo": "旷课多扫学时会被处分？",
+      "spoken": "翘课翘多了会怎样"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "course_001",
+    "question": "学生选课分为哪几轮？每轮分别做什么？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "course",
+    "golden_answer": "选课分三轮：第一轮正选在学期中（如5月底6月初）按优先级抽签确定初步课表；第二轮退改补选时间跨度长（6月中至7月初、8月底至9月初），可自由调整；开学第一周为试听与退改补选的最后期限，周五前可退补，逾期系统关闭。辅修微专业通常开课后第一二周内完成选退课。",
+    "golden_context_must": [
+      "正选",
+      "退改补选",
+      "试听",
+      "第一周",
+      "抽签"
+    ],
+    "golden_context_nice": [
+      "辅修",
+      "微专业",
+      "逾期"
+    ],
+    "key_facts": [
+      "第一轮正选按优先级抽签确定初步课表",
+      "第二轮退改补选可自由调整",
+      "开学第一周试听后退改补选为最后期限"
+    ],
+    "perturbations": {
+      "typo": "选课流程是怎幺样的？",
+      "spoken": "选课怎么选啊讲一下流程"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "course_007",
+    "question": "北师大本科生毕业需要满足哪些条件？最长可以读几年？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "course",
+    "golden_answer": "本科基本学制为4年，最长修读年限（含休学）为6年。本科生需要完成教学计划规定的全部课程和学分，通过毕业论文（设计）答辩方可毕业。具体学分要求因专业而异，每学期修读学分通常建议18-28学分。",
+    "golden_context_must": [
+      "4年",
+      "6年",
+      "修读",
+      "学分",
+      "毕业论文"
+    ],
+    "golden_context_nice": [
+      "休学",
+      "答辩"
+    ],
+    "key_facts": [
+      "基本学制4年",
+      "最长修读年限含休学6年",
+      "需完成全部课程和学分并通过毕业论文答辩"
+    ],
+    "perturbations": {
+      "typo": "毕业要什么条件？最多读几年？",
+      "spoken": "本科几年能毕业啊最多能拖多久"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "library_001",
+    "question": "如何开通图书馆的借阅权限？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "library",
+    "golden_answer": "新生可以凭校园卡进入图书馆阅览。借书需要先开通借阅权限：关注并进入图书馆微信公众号，点击我的图书馆绑定账号（账号为学号，初始密码为LIB@身份证后8位），按指引完善资料、阅读规则，通过邮箱点击链接确认开通。",
+    "golden_context_must": [
+      "校园卡",
+      "微信公众号",
+      "绑定",
+      "学号",
+      "LIB@"
+    ],
+    "golden_context_nice": [
+      "初始密码",
+      "邮箱",
+      "确认开通"
+    ],
+    "key_facts": [
+      "凭校园卡可进入阅览但借书需开通权限",
+      "通过微信公众号绑定账号",
+      "账号为学号初始密码LIB@身份证后8位",
+      "通过邮箱点击链接确认开通"
+    ],
+    "perturbations": {
+      "typo": "怎么开痛借阅权限？",
+      "spoken": "去图书馆借书要办什么手续啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "library_002",
+    "question": "本科生借书可以借多久？逾期了怎么办？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "library",
+    "golden_answer": "本科生借阅期限为30天，可以续借一次，单次续借最长30天。逾期使用费为0.1元/册/天。图书逾期会暂停借阅、预约、续借权限，并收取逾期使用费。可借范围为普通中外文图书，特藏文献、工具书、期刊等仅供室内阅览。教职工和研究生借阅期限为60天。",
+    "golden_context_must": [
+      "30天",
+      "续借",
+      "0.1元",
+      "逾期",
+      "暂停"
+    ],
+    "golden_context_nice": [
+      "特藏文献",
+      "工具书",
+      "期刊"
+    ],
+    "key_facts": [
+      "本科生借阅期限30天可续借一次最长30天",
+      "逾期使用费0.1元每册每天",
+      "逾期暂停借阅预约续借权限",
+      "特藏文献工具书期刊仅供室内阅览"
+    ],
+    "perturbations": {
+      "typo": "借书能借多旧？逾期怎么半？",
+      "spoken": "书能借多久忘还了咋办"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "campus_001",
+    "question": "宿舍的门禁时间是几点？进出宿舍需要什么？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "campus_life",
+    "golden_answer": "周一至周四及周日门禁时间为23:30，周五和周六门禁时间为23:50。进出宿舍须刷校园卡。部分宿舍楼周日至周四23:30会断网，24:00断电（空调和厕所灯除外）。",
+    "golden_context_must": [
+      "23:30",
+      "23:50",
+      "校园卡",
+      "门禁"
+    ],
+    "golden_context_nice": [
+      "断电",
+      "断网",
+      "空调"
+    ],
+    "key_facts": [
+      "周一至周四及周日门禁23:30",
+      "周五周六门禁23:50",
+      "进出须刷校园卡"
+    ],
+    "perturbations": {
+      "typo": "宿舍门禁几电？",
+      "spoken": "宿舍晚上几点关门啊"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "health_001",
+    "question": "校卫生服务中心在哪里？门诊时间是什么时候？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "health",
+    "golden_answer": "校卫生服务中心位于海华苑红楼（海华苑1栋旁，保卫处旁，校内会同南路靠近燕华苑1栋东侧）。门诊时间：周一至周五08:00-11:30、14:00-17:30；夜间22:00-次日08:00为急诊时段；周六日及节假日急诊24小时值班。急诊电话0756-3621120、0756-3683120。晚上急诊时段到门口按门铃。",
+    "golden_context_must": [
+      "海华苑红楼",
+      "08:00",
+      "11:30",
+      "急诊",
+      "3621120"
+    ],
+    "golden_context_nice": [
+      "会同南路",
+      "门铃",
+      "3683120"
+    ],
+    "key_facts": [
+      "位于海华苑红楼",
+      "周一至周五08:00到11:30和14:00到17:30",
+      "夜间22:00到次日08:00为急诊时段",
+      "急诊电话0756-3621120"
+    ],
+    "perturbations": {
+      "typo": "校医院在拿里？什么时后开门？",
+      "spoken": "学校医务室在哪几点能看病"
+    },
+    "expected_refusal": false
+  },
+  {
+    "question_id": "graduate_001",
+    "question": "研究生请假需要谁批准？不同天数的审批流程有什么区别？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "graduate",
+    "golden_answer": "研究生因伤病请假：3日以内由导师或研究生班主任或辅导员批准；3日至14日由所在培养单位主管领导批准；14日以上需填写研究生请假申请审批表并附医院证明，报教务部批准。请事假：2日以内由导师或班主任或辅导员批准；2日至7日由所在培养单位主管领导批准；7日以上需填写审批表报教务部批准。一学期内请伤病假累计超过两个月者应休学。",
+    "golden_context_must": [
+      "导师",
+      "班主任",
+      "主管领导",
+      "教务部",
+      "审批表"
+    ],
+    "golden_context_nice": [
+      "休学",
+      "两个月",
+      "医院证明"
+    ],
+    "key_facts": [
+      "伤病假3日内导师或辅导员批准",
+      "伤病假14日以上需教务部批准",
+      "事假7日以上需教务部批准",
+      "一学期伤病假累计超两月应休学"
+    ],
+    "perturbations": {
+      "typo": "研究生请假的审批流成是什么？",
+      "spoken": "研究生请假要找谁批"
+    },
+    "expected_refusal": false
+  }
+]

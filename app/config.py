@@ -20,14 +20,15 @@ class Settings(BaseSettings):
     dashscope_api_key: str = ""
 
     # ========== 模型配置 ==========
-    # 生成答案用的模型（qwen-max 旗舰模型，表达自然细腻，推荐用于对回答风格有要求的场景）
-    chat_model: str = "qwen-max"
-   
+    # 生成答案用的模型（qwen3.5-flash 是 2026Q1 新一代轻量模型，推理强、中文好、极低价）
+    # 需要更强效果时可用 qwen3.5-plus 或 qwen3.7-max
+    chat_model: str = "qwen3.5-flash"
+
     # 向量化用的 embedding 模型
     embedding_model: str = "text-embedding-v3"
-  
-    # 评估时做裁判用的模型（用便宜的就行）
-    judge_model: str = "qwen-turbo"
+
+    # 评估时做裁判用的模型（qwen3.5-flash 打分稳定，取代已过时的 qwen-turbo）
+    judge_model: str = "qwen3.5-flash"
 
     # ========== 检索参数 ==========
     # 文档分块大小（字符数）
@@ -44,8 +45,8 @@ class Settings(BaseSettings):
     rerank_enabled: bool = True
 
     # 重排序模型名称（DashScope 模型 ID）
-    # gte-rerank 是阿里通义实验室的中英双语重排序模型，效果与 bge-reranker-v2-m3 同级别
-    rerank_model: str = "gte-rerank"
+    # qwen3-rerank 是通义千问新一代重排序模型（gte-rerank 已于 2026-05-30 下线）
+    rerank_model: str = "qwen3-rerank"
 
     # 重排序时第一阶段检索的候选数量（先取这么多，再用 Rerank API 精排取 top_k）
     rerank_fetch_k: int = 20
@@ -54,8 +55,8 @@ class Settings(BaseSettings):
     # 是否启用查询重写（服务端总开关，关闭时即使 API 传 use_rewrite=true 也不生效）
     rewrite_enabled: bool = True
 
-    # 用于查询重写的模型（用便宜的就行，qwen-turbo 足够做关键词提取）
-    rewrite_model: str = "qwen-turbo"
+    # 用于查询重写的模型（qwen3.5-flash 新一代轻量，关键词提取更准）
+    rewrite_model: str = "qwen3.5-flash"
 
     # ========== LLM 生成参数 ==========
     # 生成温度（0-1），越高越随机、越低越确定

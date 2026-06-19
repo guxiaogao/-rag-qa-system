@@ -1,0 +1,616 @@
+[
+  {
+    "question_id": "exam_001_typo",
+    "question": "考试迟道了会有什么后过？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "exam",
+    "golden_answer": "考生应于开考前10分钟进入考场。如因特殊情况迟到，须向主考教师申明理由，经同意后方可进场考试。考试开始后迟到20分钟（含）以上者，取消该课程的本次考试资格，以旷考论处。",
+    "golden_context_must": [
+      "迟到",
+      "20分钟",
+      "取消资格",
+      "主考教师",
+      "10分钟"
+    ],
+    "golden_context_nice": [
+      "特殊情况",
+      "旷考论处"
+    ],
+    "key_facts": [
+      "提前10分钟进入考场",
+      "特殊情况迟到须向主考教师申明理由经同意方可进场",
+      "迟到20分钟以上取消考试资格以旷考论处"
+    ],
+    "perturbations": {
+      "typo": "考试迟道了会有什么后过？",
+      "spoken": "我要是考试来晚了咋整啊"
+    },
+    "expected_refusal": false,
+    "original_question": "考试迟到了会有什么后果？"
+  },
+  {
+    "question_id": "exam_001_spoken",
+    "question": "我要是考试来晚了咋整啊",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "exam",
+    "golden_answer": "考生应于开考前10分钟进入考场。如因特殊情况迟到，须向主考教师申明理由，经同意后方可进场考试。考试开始后迟到20分钟（含）以上者，取消该课程的本次考试资格，以旷考论处。",
+    "golden_context_must": [
+      "迟到",
+      "20分钟",
+      "取消资格",
+      "主考教师",
+      "10分钟"
+    ],
+    "golden_context_nice": [
+      "特殊情况",
+      "旷考论处"
+    ],
+    "key_facts": [
+      "提前10分钟进入考场",
+      "特殊情况迟到须向主考教师申明理由经同意方可进场",
+      "迟到20分钟以上取消考试资格以旷考论处"
+    ],
+    "perturbations": {
+      "typo": "考试迟道了会有什么后过？",
+      "spoken": "我要是考试来晚了咋整啊"
+    },
+    "expected_refusal": false,
+    "original_question": "考试迟到了会有什么后果？"
+  },
+  {
+    "question_id": "exam_005_typo",
+    "question": "那鞋行为会被认定为考试做弊？",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "exam",
+    "golden_answer": "考试作弊行为包括：闭卷考试中携带与考试内容相关的材料或存储有相关资料的电子设备、使用相关设备搜索浏览考试内容、携带具有发送或接收信息功能的设备、抄袭或协助抄袭、抢夺窃取他人试卷、考试期间在考场外查阅交流考试内容、故意销毁试卷、传接物品或交换试卷等。在线闭卷考试中搜索浏览与考试内容相关的电子资料或网页也属于作弊。",
+    "golden_context_must": [
+      "作弊",
+      "抄袭",
+      "携带",
+      "电子设备",
+      "交换试卷"
+    ],
+    "golden_context_nice": [
+      "搜索",
+      "发送接收",
+      "销毁试卷",
+      "在线考试"
+    ],
+    "key_facts": [
+      "携带与考试内容相关的材料或电子设备属于作弊",
+      "抄袭或协助抄袭属于作弊",
+      "传接物品或交换试卷属于作弊",
+      "使用设备搜索浏览考试内容属于作弊"
+    ],
+    "perturbations": {
+      "typo": "那鞋行为会被认定为考试做弊？",
+      "spoken": "考试中哪些事算是作弊啊"
+    },
+    "expected_refusal": false,
+    "original_question": "哪些行为会被认定为考试作弊？"
+  },
+  {
+    "question_id": "exam_005_spoken",
+    "question": "考试中哪些事算是作弊啊",
+    "question_type": "factoid",
+    "difficulty": "medium",
+    "category": "exam",
+    "golden_answer": "考试作弊行为包括：闭卷考试中携带与考试内容相关的材料或存储有相关资料的电子设备、使用相关设备搜索浏览考试内容、携带具有发送或接收信息功能的设备、抄袭或协助抄袭、抢夺窃取他人试卷、考试期间在考场外查阅交流考试内容、故意销毁试卷、传接物品或交换试卷等。在线闭卷考试中搜索浏览与考试内容相关的电子资料或网页也属于作弊。",
+    "golden_context_must": [
+      "作弊",
+      "抄袭",
+      "携带",
+      "电子设备",
+      "交换试卷"
+    ],
+    "golden_context_nice": [
+      "搜索",
+      "发送接收",
+      "销毁试卷",
+      "在线考试"
+    ],
+    "key_facts": [
+      "携带与考试内容相关的材料或电子设备属于作弊",
+      "抄袭或协助抄袭属于作弊",
+      "传接物品或交换试卷属于作弊",
+      "使用设备搜索浏览考试内容属于作弊"
+    ],
+    "perturbations": {
+      "typo": "那鞋行为会被认定为考试做弊？",
+      "spoken": "考试中哪些事算是作弊啊"
+    },
+    "expected_refusal": false,
+    "original_question": "哪些行为会被认定为考试作弊？"
+  },
+  {
+    "question_id": "exam_008_typo",
+    "question": "违纪认定程序是森么样的？",
+    "question_type": "procedural",
+    "difficulty": "hard",
+    "category": "exam",
+    "golden_answer": "认定程序为：（1）监考教师发现违纪当场指出并终止考试；（2）收缴相关材料并要求考生签字；（3）在试卷上写明违纪并填写考场记录；（4）考生填写违纪情况说明，监考教师签字确认；（5）考试结束后将考场记录、违纪材料、工具和违纪情况说明报送开课院系教务员；（6）院系负责人核实后报送教务部；（7）教务部审核汇总后报送党委学生工作部；（8）学生所在院系进行批评教育并提出处理建议；（9）教务部与党委学生工作部联合召开处理工作会讨论处理意见，报主管校领导审批；（10）最终认定违纪则该门课程按0分或不及格记并注明违纪，给予相应纪律处分。",
+    "golden_context_must": [
+      "监考教师",
+      "终止考试",
+      "考场记录",
+      "违纪情况说明",
+      "教务部",
+      "党委学生工作部"
+    ],
+    "golden_context_nice": [
+      "院系",
+      "处理意见",
+      "校领导审批"
+    ],
+    "key_facts": [
+      "监考教师当场指出违纪并终止考试",
+      "填写考场记录和违纪情况说明",
+      "经院系教务部党委学生工作部逐级审核",
+      "最终由教务部与党委学生工作部联合开会讨论处理意见"
+    ],
+    "perturbations": {
+      "typo": "违纪认定程序是森么样的？",
+      "spoken": "作弊被抓了后面要走什么流程啊"
+    },
+    "expected_refusal": false,
+    "original_question": "考试违纪的认定程序是怎样的？从发现到最终处分需要经过哪些步骤？"
+  },
+  {
+    "question_id": "exam_008_spoken",
+    "question": "作弊被抓了后面要走什么流程啊",
+    "question_type": "procedural",
+    "difficulty": "hard",
+    "category": "exam",
+    "golden_answer": "认定程序为：（1）监考教师发现违纪当场指出并终止考试；（2）收缴相关材料并要求考生签字；（3）在试卷上写明违纪并填写考场记录；（4）考生填写违纪情况说明，监考教师签字确认；（5）考试结束后将考场记录、违纪材料、工具和违纪情况说明报送开课院系教务员；（6）院系负责人核实后报送教务部；（7）教务部审核汇总后报送党委学生工作部；（8）学生所在院系进行批评教育并提出处理建议；（9）教务部与党委学生工作部联合召开处理工作会讨论处理意见，报主管校领导审批；（10）最终认定违纪则该门课程按0分或不及格记并注明违纪，给予相应纪律处分。",
+    "golden_context_must": [
+      "监考教师",
+      "终止考试",
+      "考场记录",
+      "违纪情况说明",
+      "教务部",
+      "党委学生工作部"
+    ],
+    "golden_context_nice": [
+      "院系",
+      "处理意见",
+      "校领导审批"
+    ],
+    "key_facts": [
+      "监考教师当场指出违纪并终止考试",
+      "填写考场记录和违纪情况说明",
+      "经院系教务部党委学生工作部逐级审核",
+      "最终由教务部与党委学生工作部联合开会讨论处理意见"
+    ],
+    "perturbations": {
+      "typo": "违纪认定程序是森么样的？",
+      "spoken": "作弊被抓了后面要走什么流程啊"
+    },
+    "expected_refusal": false,
+    "original_question": "考试违纪的认定程序是怎样的？从发现到最终处分需要经过哪些步骤？"
+  },
+  {
+    "question_id": "discipline_001_typo",
+    "question": "违纪处份有几种？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "学校对有违纪行为的学生，视情节轻重给予五种处分：警告、严重警告、记过、留校察看、开除学籍。",
+    "golden_context_must": [
+      "警告",
+      "严重警告",
+      "记过",
+      "留校察看",
+      "开除学籍"
+    ],
+    "golden_context_nice": [
+      "五种",
+      "情节轻重"
+    ],
+    "key_facts": [
+      "五种处分从轻到重依次为警告严重警告记过留校察看开除学籍"
+    ],
+    "perturbations": {
+      "typo": "违纪处份有几种？",
+      "spoken": "学生违纪会被怎么罚啊"
+    },
+    "expected_refusal": false,
+    "original_question": "北师大学生违纪处分分为哪几种？"
+  },
+  {
+    "question_id": "discipline_001_spoken",
+    "question": "学生违纪会被怎么罚啊",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "学校对有违纪行为的学生，视情节轻重给予五种处分：警告、严重警告、记过、留校察看、开除学籍。",
+    "golden_context_must": [
+      "警告",
+      "严重警告",
+      "记过",
+      "留校察看",
+      "开除学籍"
+    ],
+    "golden_context_nice": [
+      "五种",
+      "情节轻重"
+    ],
+    "key_facts": [
+      "五种处分从轻到重依次为警告严重警告记过留校察看开除学籍"
+    ],
+    "perturbations": {
+      "typo": "违纪处份有几种？",
+      "spoken": "学生违纪会被怎么罚啊"
+    },
+    "expected_refusal": false,
+    "original_question": "北师大学生违纪处分分为哪几种？"
+  },
+  {
+    "question_id": "discipline_002_typo",
+    "question": "警告处份期多长？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "警告和严重警告的处分期为6个月，记过和留校察看的处分期为12个月。处分期限从处分决定书送达之日起计算。在处分期内休学的，休学时间不计入处分期。",
+    "golden_context_must": [
+      "6个月",
+      "12个月",
+      "处分期",
+      "送达之日"
+    ],
+    "golden_context_nice": [
+      "休学",
+      "不计入"
+    ],
+    "key_facts": [
+      "警告和严重警告处分期为6个月",
+      "记过和留校察看处分期为12个月",
+      "处分期限从处分决定书送达之日起计算"
+    ],
+    "perturbations": {
+      "typo": "警告处份期多长？",
+      "spoken": "记个大过要背多久啊"
+    },
+    "expected_refusal": false,
+    "original_question": "警告和留校察看的处分期分别是多久？从什么时候开始计算？"
+  },
+  {
+    "question_id": "discipline_002_spoken",
+    "question": "记个大过要背多久啊",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "discipline",
+    "golden_answer": "警告和严重警告的处分期为6个月，记过和留校察看的处分期为12个月。处分期限从处分决定书送达之日起计算。在处分期内休学的，休学时间不计入处分期。",
+    "golden_context_must": [
+      "6个月",
+      "12个月",
+      "处分期",
+      "送达之日"
+    ],
+    "golden_context_nice": [
+      "休学",
+      "不计入"
+    ],
+    "key_facts": [
+      "警告和严重警告处分期为6个月",
+      "记过和留校察看处分期为12个月",
+      "处分期限从处分决定书送达之日起计算"
+    ],
+    "perturbations": {
+      "typo": "警告处份期多长？",
+      "spoken": "记个大过要背多久啊"
+    },
+    "expected_refusal": false,
+    "original_question": "警告和留校察看的处分期分别是多久？从什么时候开始计算？"
+  },
+  {
+    "question_id": "discipline_006_typo",
+    "question": "怎么深诉？有期限吗？",
+    "question_type": "procedural",
+    "difficulty": "medium",
+    "category": "discipline",
+    "golden_answer": "受处分学生对处分决定有异议的，可以自收到处分决定书之日起10日内，向学生工作指导委员会学生申诉处理工作组提出书面申诉。申诉程序按学校学生申诉管理有关办法执行。处分决定书未告知学生申诉期限的，申诉期限自学生知道或应当知道处分决定之日起计算，最长不超过6个月。申诉期间不影响处分决定的执行。",
+    "golden_context_must": [
+      "申诉",
+      "10日",
+      "书面",
+      "学生申诉处理工作组"
+    ],
+    "golden_context_nice": [
+      "6个月",
+      "不影响执行"
+    ],
+    "key_facts": [
+      "收到处分决定书之日起10日内提出书面申诉",
+      "向学生申诉处理工作组提出",
+      "申诉期间不影响处分决定的执行"
+    ],
+    "perturbations": {
+      "typo": "怎么深诉？有期限吗？",
+      "spoken": "被处分了不服气怎么上诉啊"
+    },
+    "expected_refusal": false,
+    "original_question": "学生如果对处分决定有异议，应该如何申诉？申诉期限是多久？"
+  },
+  {
+    "question_id": "discipline_006_spoken",
+    "question": "被处分了不服气怎么上诉啊",
+    "question_type": "procedural",
+    "difficulty": "medium",
+    "category": "discipline",
+    "golden_answer": "受处分学生对处分决定有异议的，可以自收到处分决定书之日起10日内，向学生工作指导委员会学生申诉处理工作组提出书面申诉。申诉程序按学校学生申诉管理有关办法执行。处分决定书未告知学生申诉期限的，申诉期限自学生知道或应当知道处分决定之日起计算，最长不超过6个月。申诉期间不影响处分决定的执行。",
+    "golden_context_must": [
+      "申诉",
+      "10日",
+      "书面",
+      "学生申诉处理工作组"
+    ],
+    "golden_context_nice": [
+      "6个月",
+      "不影响执行"
+    ],
+    "key_facts": [
+      "收到处分决定书之日起10日内提出书面申诉",
+      "向学生申诉处理工作组提出",
+      "申诉期间不影响处分决定的执行"
+    ],
+    "perturbations": {
+      "typo": "怎么深诉？有期限吗？",
+      "spoken": "被处分了不服气怎么上诉啊"
+    },
+    "expected_refusal": false,
+    "original_question": "学生如果对处分决定有异议，应该如何申诉？申诉期限是多久？"
+  },
+  {
+    "question_id": "course_001_typo",
+    "question": "选课流程是怎幺样的？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "course",
+    "golden_answer": "选课分三轮：第一轮正选在学期中（如5月底6月初）按优先级抽签确定初步课表；第二轮退改补选时间跨度长（6月中至7月初、8月底至9月初），可自由调整；开学第一周为试听与退改补选的最后期限，周五前可退补，逾期系统关闭。辅修微专业通常开课后第一二周内完成选退课。",
+    "golden_context_must": [
+      "正选",
+      "退改补选",
+      "试听",
+      "第一周",
+      "抽签"
+    ],
+    "golden_context_nice": [
+      "辅修",
+      "微专业",
+      "逾期"
+    ],
+    "key_facts": [
+      "第一轮正选按优先级抽签确定初步课表",
+      "第二轮退改补选可自由调整",
+      "开学第一周试听后退改补选为最后期限"
+    ],
+    "perturbations": {
+      "typo": "选课流程是怎幺样的？",
+      "spoken": "选课怎么选啊讲一下流程"
+    },
+    "expected_refusal": false,
+    "original_question": "学生选课分为哪几轮？每轮分别做什么？"
+  },
+  {
+    "question_id": "course_001_spoken",
+    "question": "选课怎么选啊讲一下流程",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "course",
+    "golden_answer": "选课分三轮：第一轮正选在学期中（如5月底6月初）按优先级抽签确定初步课表；第二轮退改补选时间跨度长（6月中至7月初、8月底至9月初），可自由调整；开学第一周为试听与退改补选的最后期限，周五前可退补，逾期系统关闭。辅修微专业通常开课后第一二周内完成选退课。",
+    "golden_context_must": [
+      "正选",
+      "退改补选",
+      "试听",
+      "第一周",
+      "抽签"
+    ],
+    "golden_context_nice": [
+      "辅修",
+      "微专业",
+      "逾期"
+    ],
+    "key_facts": [
+      "第一轮正选按优先级抽签确定初步课表",
+      "第二轮退改补选可自由调整",
+      "开学第一周试听后退改补选为最后期限"
+    ],
+    "perturbations": {
+      "typo": "选课流程是怎幺样的？",
+      "spoken": "选课怎么选啊讲一下流程"
+    },
+    "expected_refusal": false,
+    "original_question": "学生选课分为哪几轮？每轮分别做什么？"
+  },
+  {
+    "question_id": "library_001_typo",
+    "question": "怎么开痛借阅权限？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "library",
+    "golden_answer": "新生可以凭校园卡进入图书馆阅览。借书需要先开通借阅权限：关注并进入图书馆微信公众号，点击我的图书馆绑定账号（账号为学号，初始密码为LIB@身份证后8位），按指引完善资料、阅读规则，通过邮箱点击链接确认开通。",
+    "golden_context_must": [
+      "校园卡",
+      "微信公众号",
+      "绑定",
+      "学号",
+      "LIB@"
+    ],
+    "golden_context_nice": [
+      "初始密码",
+      "邮箱",
+      "确认开通"
+    ],
+    "key_facts": [
+      "凭校园卡可进入阅览但借书需开通权限",
+      "通过微信公众号绑定账号",
+      "账号为学号初始密码LIB@身份证后8位",
+      "通过邮箱点击链接确认开通"
+    ],
+    "perturbations": {
+      "typo": "怎么开痛借阅权限？",
+      "spoken": "去图书馆借书要办什么手续啊"
+    },
+    "expected_refusal": false,
+    "original_question": "如何开通图书馆的借阅权限？"
+  },
+  {
+    "question_id": "library_001_spoken",
+    "question": "去图书馆借书要办什么手续啊",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "library",
+    "golden_answer": "新生可以凭校园卡进入图书馆阅览。借书需要先开通借阅权限：关注并进入图书馆微信公众号，点击我的图书馆绑定账号（账号为学号，初始密码为LIB@身份证后8位），按指引完善资料、阅读规则，通过邮箱点击链接确认开通。",
+    "golden_context_must": [
+      "校园卡",
+      "微信公众号",
+      "绑定",
+      "学号",
+      "LIB@"
+    ],
+    "golden_context_nice": [
+      "初始密码",
+      "邮箱",
+      "确认开通"
+    ],
+    "key_facts": [
+      "凭校园卡可进入阅览但借书需开通权限",
+      "通过微信公众号绑定账号",
+      "账号为学号初始密码LIB@身份证后8位",
+      "通过邮箱点击链接确认开通"
+    ],
+    "perturbations": {
+      "typo": "怎么开痛借阅权限？",
+      "spoken": "去图书馆借书要办什么手续啊"
+    },
+    "expected_refusal": false,
+    "original_question": "如何开通图书馆的借阅权限？"
+  },
+  {
+    "question_id": "campus_001_typo",
+    "question": "宿舍门禁几电？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "campus_life",
+    "golden_answer": "周一至周四及周日门禁时间为23:30，周五和周六门禁时间为23:50。进出宿舍须刷校园卡。部分宿舍楼周日至周四23:30会断网，24:00断电（空调和厕所灯除外）。",
+    "golden_context_must": [
+      "23:30",
+      "23:50",
+      "校园卡",
+      "门禁"
+    ],
+    "golden_context_nice": [
+      "断电",
+      "断网",
+      "空调"
+    ],
+    "key_facts": [
+      "周一至周四及周日门禁23:30",
+      "周五周六门禁23:50",
+      "进出须刷校园卡"
+    ],
+    "perturbations": {
+      "typo": "宿舍门禁几电？",
+      "spoken": "宿舍晚上几点关门啊"
+    },
+    "expected_refusal": false,
+    "original_question": "宿舍的门禁时间是几点？进出宿舍需要什么？"
+  },
+  {
+    "question_id": "campus_001_spoken",
+    "question": "宿舍晚上几点关门啊",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "campus_life",
+    "golden_answer": "周一至周四及周日门禁时间为23:30，周五和周六门禁时间为23:50。进出宿舍须刷校园卡。部分宿舍楼周日至周四23:30会断网，24:00断电（空调和厕所灯除外）。",
+    "golden_context_must": [
+      "23:30",
+      "23:50",
+      "校园卡",
+      "门禁"
+    ],
+    "golden_context_nice": [
+      "断电",
+      "断网",
+      "空调"
+    ],
+    "key_facts": [
+      "周一至周四及周日门禁23:30",
+      "周五周六门禁23:50",
+      "进出须刷校园卡"
+    ],
+    "perturbations": {
+      "typo": "宿舍门禁几电？",
+      "spoken": "宿舍晚上几点关门啊"
+    },
+    "expected_refusal": false,
+    "original_question": "宿舍的门禁时间是几点？进出宿舍需要什么？"
+  },
+  {
+    "question_id": "health_001_typo",
+    "question": "校医院在拿里？什么时后开门？",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "health",
+    "golden_answer": "校卫生服务中心位于海华苑红楼（海华苑1栋旁，保卫处旁，校内会同南路靠近燕华苑1栋东侧）。门诊时间：周一至周五08:00-11:30、14:00-17:30；夜间22:00-次日08:00为急诊时段；周六日及节假日急诊24小时值班。急诊电话0756-3621120、0756-3683120。晚上急诊时段到门口按门铃。",
+    "golden_context_must": [
+      "海华苑红楼",
+      "08:00",
+      "11:30",
+      "急诊",
+      "3621120"
+    ],
+    "golden_context_nice": [
+      "会同南路",
+      "门铃",
+      "3683120"
+    ],
+    "key_facts": [
+      "位于海华苑红楼",
+      "周一至周五08:00到11:30和14:00到17:30",
+      "夜间22:00到次日08:00为急诊时段",
+      "急诊电话0756-3621120"
+    ],
+    "perturbations": {
+      "typo": "校医院在拿里？什么时后开门？",
+      "spoken": "学校医务室在哪几点能看病"
+    },
+    "expected_refusal": false,
+    "original_question": "校卫生服务中心在哪里？门诊时间是什么时候？"
+  },
+  {
+    "question_id": "health_001_spoken",
+    "question": "学校医务室在哪几点能看病",
+    "question_type": "factoid",
+    "difficulty": "easy",
+    "category": "health",
+    "golden_answer": "校卫生服务中心位于海华苑红楼（海华苑1栋旁，保卫处旁，校内会同南路靠近燕华苑1栋东侧）。门诊时间：周一至周五08:00-11:30、14:00-17:30；夜间22:00-次日08:00为急诊时段；周六日及节假日急诊24小时值班。急诊电话0756-3621120、0756-3683120。晚上急诊时段到门口按门铃。",
+    "golden_context_must": [
+      "海华苑红楼",
+      "08:00",
+      "11:30",
+      "急诊",
+      "3621120"
+    ],
+    "golden_context_nice": [
+      "会同南路",
+      "门铃",
+      "3683120"
+    ],
+    "key_facts": [
+      "位于海华苑红楼",
+      "周一至周五08:00到11:30和14:00到17:30",
+      "夜间22:00到次日08:00为急诊时段",
+      "急诊电话0756-3621120"
+    ],
+    "perturbations": {
+      "typo": "校医院在拿里？什么时后开门？",
+      "spoken": "学校医务室在哪几点能看病"
+    },
+    "expected_refusal": false,
+    "original_question": "校卫生服务中心在哪里？门诊时间是什么时候？"
+  }
+]

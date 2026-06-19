@@ -68,7 +68,7 @@ def main():
                 use_mmr=False,
                 use_reranker=True,
                 use_rewrite=False,
-                description="Dense + gte-rerank",
+                description="Dense + qwen3-rerank",
             ),
             ExperimentConfig(
                 name="+Rewrite",
@@ -88,7 +88,7 @@ def main():
                 use_mmr=False,
                 use_reranker=True,
                 use_rewrite=True,
-                description="Rewrite + Dense + gte-rerank",
+                description="Rewrite + Dense + qwen3-rerank",
             ),
         ]
         label = "FULL: 10 Questions × 4 Configs"
