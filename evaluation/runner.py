@@ -4,7 +4,7 @@ One entry point for all evaluation modes.
 
 Usage:
   python -m evaluation.runner benchmark               # 60 questions x baseline
-  python -m evaluation.runner benchmark --full         # 60 questions x 4 configs
+  python -m evaluation.runner benchmark --full         # 60 questions x 3 configs
   python -m evaluation.runner benchmark --quick        # 15 questions x 1 config
   python -m evaluation.runner benchmark --dataset golden  # Golden regression set
   python -m evaluation.runner golden                   # Alias: golden regression
@@ -29,16 +29,14 @@ from app.config import settings, PROJECT_ROOT
 
 
 def _default_configs() -> list:
-    """Return the 4 default experiment configurations."""
+    """Return the 3 default experiment configurations (Rewrite disabled server-side)."""
     return [
         ExperimentConfig(name="baseline", top_k=5, use_mmr=False, use_reranker=False, use_rewrite=False,
                          description="Dense retrieval only"),
         ExperimentConfig(name="+Rerank", top_k=5, use_mmr=False, use_reranker=True, use_rewrite=False,
                          description="Dense + qwen3-rerank"),
-        ExperimentConfig(name="+Rewrite", top_k=5, use_mmr=False, use_reranker=False, use_rewrite=True,
-                         description="LLM query rewrite + Dense"),
-        ExperimentConfig(name="+Rewrite+Rerank", top_k=5, use_mmr=False, use_reranker=True, use_rewrite=True,
-                         description="Rewrite + Dense + qwen3-rerank"),
+        ExperimentConfig(name="+MMR", top_k=5, use_mmr=True, use_reranker=False, use_rewrite=False,
+                         description="Dense + MMR (diversity)"),
     ]
 
 

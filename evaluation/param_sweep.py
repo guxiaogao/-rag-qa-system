@@ -38,27 +38,27 @@ from app.config import settings, PROJECT_ROOT
 RUNTIME_GRID = {
     "top_k": [3, 5, 8, 10],
     "use_reranker": [False, True],
-    "use_rewrite": [False, True],
+    "use_mmr": [False, True],
 }
 
 # Smart experiment paths (avoid full combinatorial explosion)
+# Note: rewrite removed — server-side REWRITE_ENABLED=false
 EXPERIMENT_PATHS = [
     # Path 1: Isolate top_k
-    {"top_k": 3, "use_reranker": False, "use_rewrite": False, "label": "top3_baseline"},
-    {"top_k": 5, "use_reranker": False, "use_rewrite": False, "label": "top5_baseline"},
-    {"top_k": 8, "use_reranker": False, "use_rewrite": False, "label": "top8_baseline"},
-    {"top_k": 10, "use_reranker": False, "use_rewrite": False, "label": "top10_baseline"},
+    {"top_k": 3, "use_reranker": False, "use_mmr": False, "label": "top3_baseline"},
+    {"top_k": 5, "use_reranker": False, "use_mmr": False, "label": "top5_baseline"},
+    {"top_k": 8, "use_reranker": False, "use_mmr": False, "label": "top8_baseline"},
+    {"top_k": 10, "use_reranker": False, "use_mmr": False, "label": "top10_baseline"},
     # Path 2: Rerank effect
-    {"top_k": 5, "use_reranker": True, "use_rewrite": False, "label": "top5_rerank"},
-    {"top_k": 8, "use_reranker": True, "use_rewrite": False, "label": "top8_rerank"},
-    {"top_k": 10, "use_reranker": True, "use_rewrite": False, "label": "top10_rerank"},
-    # Path 3: Rewrite effect
-    {"top_k": 5, "use_reranker": False, "use_rewrite": True, "label": "top5_rewrite"},
-    {"top_k": 8, "use_reranker": False, "use_rewrite": True, "label": "top8_rewrite"},
-    # Path 4: Full pipeline
-    {"top_k": 5, "use_reranker": True, "use_rewrite": True, "label": "top5_full"},
-    {"top_k": 8, "use_reranker": True, "use_rewrite": True, "label": "top8_full"},
-    {"top_k": 10, "use_reranker": True, "use_rewrite": True, "label": "top10_full"},
+    {"top_k": 5, "use_reranker": True, "use_mmr": False, "label": "top5_rerank"},
+    {"top_k": 8, "use_reranker": True, "use_mmr": False, "label": "top8_rerank"},
+    {"top_k": 10, "use_reranker": True, "use_mmr": False, "label": "top10_rerank"},
+    # Path 3: MMR effect
+    {"top_k": 5, "use_reranker": False, "use_mmr": True, "label": "top5_mmr"},
+    {"top_k": 8, "use_reranker": False, "use_mmr": True, "label": "top8_mmr"},
+    # Path 4: Rerank + MMR
+    {"top_k": 5, "use_reranker": True, "use_mmr": True, "label": "top5_rerank_mmr"},
+    {"top_k": 8, "use_reranker": True, "use_mmr": True, "label": "top8_rerank_mmr"},
 ]
 
 CHUNK_PATHS = [
@@ -76,10 +76,10 @@ def _make_config(label: str, params: dict) -> ExperimentConfig:
         top_k=params.get("top_k", 5),
         use_mmr=params.get("use_mmr", False),
         use_reranker=params.get("use_reranker", False),
-        use_rewrite=params.get("use_rewrite", False),
+        use_rewrite=False,
         chunk_size=params.get("chunk_size", 500),
         chunk_overlap=params.get("chunk_overlap", 100),
-        description=f"top_k={params.get('top_k',5)} rerank={params.get('use_reranker',False)} rewrite={params.get('use_rewrite',False)}",
+        description=f"top_k={params.get('top_k',5)} rerank={params.get('use_reranker',False)} mmr={params.get('use_mmr',False)}",
     )
 
 
