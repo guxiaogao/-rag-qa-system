@@ -108,7 +108,7 @@ def main():
         print(f"    Answer Relevancy: {row['answer_relevancy']:.4f}")
         print(f"    Context Precision:{row['context_precision']:.4f}")
         print(f"    Context Recall:   {row['context_recall']:.4f}")
-        print(f"    Avg Latency:      {row['latency_avg']:.2f}s")
+        print(f"    Avg Latency:      {row['latency_avg_s']:.2f}s")
         print(f"    Samples:          {row['sample_count']}")
 
 
