@@ -28,7 +28,7 @@ _RERANK_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-re
 
 # 重试参数
 _MAX_RETRIES = 0           # 不重试：失败由 retriever.py 降级逻辑兜底
-_API_TIMEOUT = 3           # 3s 超时（正常 Rerank API 200-400ms 返回）
+_API_TIMEOUT = 10          # 10s 超时（正常 Rerank API 200-400ms 返回，预留网络波动余量）
 
 
 def _call_rerank_api(request_body: dict, headers: dict) -> dict:

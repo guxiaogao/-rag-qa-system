@@ -1,1 +1,1 @@
-# Scripts utility package for the RAG project
+"""RAG 项目脚本工具包"""

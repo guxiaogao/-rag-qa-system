@@ -19,9 +19,7 @@ data/source_docs/*.pdf
 .vscode/
 .idea/
 
-# Docker 构建缓存
-.dockerignore
-# (Dockerfile 和 docker-compose.yml 应纳入版本控制)
+# Docker 相关（Dockerfile 和 docker-compose.yml 应纳入版本控制）
 
 # 本地运行时产生的缓存和结果
 data/pdf_extracts.json

@@ -106,7 +106,7 @@ def hallucination_check(answer: str, context: str) -> tuple:
     hallucination_score: 1.0 = no hallucination, 0.0 = severe hallucination.
     """
     if not answer.strip():
-        return 1.0, 'Empty answer'
+        return 0.0, 'Empty answer'
 
     llm = get_cached_llm(model=settings.judge_model, temperature=0.0)
     prompt = HALLUC_PROMPT.format(context=context[:4000], answer=answer[:2000])
