@@ -132,13 +132,26 @@ def main():
 
     # ========== 第 3 步：确定哪些文件需要索引 ==========
     if full_rebuild:
-        # 全量模式：清空旧数据后重新索引全部文件
-        print(f"\n[第 3 步] 全量模式：清空向量数据库中的旧数据...")
-        try:
-            reset_collection()
-            print(f"   已删除旧集合：{settings.chroma_collection_name}")
-        except Exception as e:
-            print(f"   清理旧数据时出错（可忽略）：{e}")
+        # 全量模式：直接删除 ChromaDB 数据文件，不依赖 reset_collection()
+        # reset_collection() 用 PersistentClient 删 collection 后，
+        # Chroma() 构造函数可能拿到旧的 SQLite 连接引用，导致 NotFoundError。
+        # 删除文件再重建是最干净的方式。
+        print(f"\n[第 3 步] 全量模式：清空向量数据库文件...")
+        import glob as _glob
+        chroma_dir = settings.chroma_db_path
+        for f in _glob.glob(os.path.join(chroma_dir, "*")):
+            try:
+                if os.path.isfile(f):
+                    os.remove(f)
+                elif os.path.isdir(f):
+                    import shutil
+                    shutil.rmtree(f)
+                    print(f"   已删除：{os.path.relpath(f, chroma_dir)}/")
+            except Exception as e:
+                print(f"   删除失败：{f} ({e})")
+        # 清除模块缓存，让 get_vector_store() 创建全新连接
+        import app.database as _db
+        _db._vector_store = None
         files_to_process = all_supported
     else:
         # 增量模式：查询已入库的文件名，找出新文件
