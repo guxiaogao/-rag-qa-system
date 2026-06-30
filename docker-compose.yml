@@ -1,10 +1,8 @@
 # ============================================================
 # RAG 智能问答系统 Docker Compose
-# 启动: docker-compose up -d
+# 启动: docker compose up -d
 # 首次启动会自动初始化向量库，无需手动操作
 # ============================================================
-
-version: "3.8"
 
 services:
   rag:
@@ -34,6 +32,5 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
-    extra_hosts:
-      # 如果遇到 DNS 解析问题，取消注释下面的行
-      # - "host.docker.internal:host-gateway"
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
