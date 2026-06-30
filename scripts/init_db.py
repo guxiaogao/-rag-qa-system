@@ -93,7 +93,10 @@ def main():
     print("\n[第 1 步] 写入内置示例文档...")
     for filename, content in SAMPLE_DOCUMENTS.items():
         file_path = os.path.join(data_dir, filename)
-        # 写入文件（如果用户已手动放了同名文件则覆盖，保证内容最新）
+        # 跳过已存在的文件（避免只读挂载时报 OSError）
+        if os.path.exists(file_path):
+            print(f"   [SKIP] {filename} — 已存在")
+            continue
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
         print(f"   [OK] {filename}")
