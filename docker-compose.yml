@@ -21,8 +21,12 @@ services:
       - ./data/chroma_db:/app/data/chroma_db
       # 源文档（方便随时添加新 PDF/txt 后重建索引）
       - ./data/source_docs:/app/data/source_docs:ro
+      # 应用代码（修改代码后只需 restart，无需 rebuild）
+      - ./app:/app/app:ro
       # 前端静态文件（如需热更新）
       - ./static:/app/static:ro
+      # evaluation 脚本（如需热更新）
+      - ./evaluation:/app/evaluation:ro
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
