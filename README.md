@@ -89,7 +89,7 @@
 |------|------|
 | **异常处理** | 4 层自定义异常继承体系：`RAGException` → `RetrievalException` / `GenerationException` / `DocumentProcessingException` / `VectorStoreException`，全局异常处理器统一返回 `{error_code, message, detail}` 结构化 JSON |
 | **配置管理** | 基于 `pydantic-settings` 自动加载 `.env` 文件，类型校验 + 默认值，敏感信息（API Key）与代码隔离 |
-| **限流保护** | `SlowAPI` 按客户端 IP 独立计数：聊天接口 60 次/分钟，检索调试接口 120 次/分钟，文档上传 10 次/分钟 |
+| **限流保护** | `SlowAPI` 按客户端 IP 独立计数：聊天接口 60 次/分钟，检索调试接口 120 次/分钟 |
 | **优雅降级** | 查询重写失败 → 自动回退原始查询；Rerank API 失败 → 回退相似度排序；Web 搜索失败 → 静默使用 KB 结果 |
 | **CI 自动校验** | GitHub Actions 三阶段流水线：PR 快速检查（~30s，无 API 消耗）→ main 分支全量集成验证（初始化向量库 + 端到端检索 + 冒烟评估）→ 手动触发全量 Benchmark |
 
@@ -186,7 +186,6 @@ python -m evaluation.runner oos                     # 域外拒答测试
 | `POST` | `/api/chat` | 核心问答接口（SSE 流式输出） |
 | `POST` | `/api/search` | 仅检索不生成（调试用） |
 | `GET` | `/api/documents` | 列出已索引文档及分块数 |
-| `POST` | `/api/documents/upload` | 上传并自动索引文档 |
 | `DELETE` | `/api/documents/{filename}` | 删除指定文档的索引 |
 
 启动服务后访问 `http://localhost:8000/docs` 查看完整交互式文档。

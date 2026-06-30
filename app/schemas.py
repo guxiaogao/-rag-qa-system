@@ -79,14 +79,6 @@ class DocumentListResponse(BaseModel):
     total: int                # 文档总数
 
 
-class UploadResponse(BaseModel):
-    """上传响应"""
-    message: str
-    filename: str
-    chunk_count: int
-    document_id: str
-
-
 class DeleteResponse(BaseModel):
     """删除响应"""
     message: str

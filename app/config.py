@@ -94,10 +94,6 @@ class Settings(BaseSettings):
     # DashScope OpenAI 兼容接口地址（不需要改）
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
 
-    # ========== 上传限制 ==========
-    # 单次上传文件大小上限（MB）
-    max_upload_size_mb: int = 10
-
     class Config:
         env_file = _ENV_FILE
         env_file_encoding = "utf-8"
